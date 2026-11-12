@@ -1,0 +1,7 @@
+.DS_Store
+.vercel
+.env*
+
+# Python
+.venv/
+__pycache__/
