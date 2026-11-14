@@ -35,7 +35,7 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 
 /** The answer to "how long will we have sunlight and contact with Earth?" for one scenario. */
 export function Results({ scenario }: { scenario: Scenario }) {
-  const { sun, earth, both_percent, sun_elevation_at_start_deg } = scenario.metrics;
+  const { sun, earth, both_percent, sun_elevation_at_start_deg, solar_w_m2 } = scenario.metrics;
   const days = (scenario.end - scenario.start) / 86400;
   return (
     <section className="space-y-3">
@@ -57,7 +57,7 @@ export function Results({ scenario }: { scenario: Scenario }) {
           text={headline(earth, { up: "Earth in view", down: "Earth hidden", rises: "Earthrise", sets: "Earthset" })}
         />
       </div>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Stat label="Sunlit" value={formatPercent(sun.visible_percent)} hint={formatDuration(sun.visible_hours)} />
         <Stat label="Longest dark" value={formatDuration(sun.longest_hidden_hours)} />
         <Stat label="Earth in view" value={formatPercent(earth.visible_percent)} hint={formatDuration(earth.visible_hours)} />
@@ -67,6 +67,16 @@ export function Results({ scenario }: { scenario: Scenario }) {
           label="Sun at landing"
           value={`${sun_elevation_at_start_deg.toFixed(2)}°`}
           hint={`${sun.disk_percent_at_start.toFixed(0)}% of disk visible`}
+        />
+        <Stat
+          label="Sunlight on vertical panel"
+          value={`${Math.round(solar_w_m2.vertical_avg)} W/m²`}
+          hint="mission average, panel turned to face the Sun"
+        />
+        <Stat
+          label="Sunlight on flat panel"
+          value={`${Math.round(solar_w_m2.horizontal_avg)} W/m²`}
+          hint="mission average, panel lying flat"
         />
       </div>
       <p className="text-xs text-muted">

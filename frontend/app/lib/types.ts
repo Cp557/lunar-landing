@@ -47,6 +47,7 @@ export type Scenario = {
     both_percent: number;
     sun_elevation_at_start_deg: number;
     earth_elevation_at_start_deg: number;
+    solar_w_m2: { vertical_avg: number; horizontal_avg: number };
   };
 };
 

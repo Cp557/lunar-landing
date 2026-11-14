@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 /** Renders an Observable Plot chart at the container's width, redrawing on resize. */
-export function PlotFigure({ render }: { render: (width: number) => Element }) {
+export function PlotFigure({ render, label }: { render: (width: number) => Element; label: string }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,5 +21,5 @@ export function PlotFigure({ render }: { render: (width: number) => Element }) {
     return () => observer.disconnect();
   }, [render]);
 
-  return <div ref={ref} className="w-full" />;
+  return <div ref={ref} role="img" aria-label={label} className="w-full" />;
 }

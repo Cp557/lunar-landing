@@ -9,6 +9,8 @@ from lunar.terrain import Horizon
 
 SUN_RADIUS_KM = 695_700.0
 EARTH_RADIUS_KM = 6_371.0
+AU_KM = 149_597_870.7
+SOLAR_CONSTANT_W_M2 = 1361.0  # at 1 AU
 
 
 def disk_fraction(center_el_deg, horizon_el_deg, angular_radius_deg) -> np.ndarray:
@@ -21,6 +23,7 @@ def disk_fraction(center_el_deg, horizon_el_deg, angular_radius_deg) -> np.ndarr
 class BodyTrack:
     az_deg: np.ndarray
     el_deg: np.ndarray
+    distance_km: np.ndarray
     horizon_deg: np.ndarray  # terrain horizon at the body's azimuth
     disk: np.ndarray  # visible fraction of the disk, 0..1
 
@@ -33,7 +36,17 @@ class BodyTrack:
 def body_track(az, el, distance_km, radius_km: float, horizon: Horizon) -> BodyTrack:
     horizon_el = horizon.at(az)
     angular_radius = np.degrees(np.arcsin(radius_km / distance_km))
-    return BodyTrack(az, el, horizon_el, disk_fraction(el, horizon_el, angular_radius))
+    return BodyTrack(az, el, distance_km, horizon_el, disk_fraction(el, horizon_el, angular_radius))
+
+
+def solar_irradiance_w_m2(sun: BodyTrack) -> tuple[np.ndarray, np.ndarray]:
+    """Sunlight reaching (vertical panel turned toward the Sun, horizontal panel), W/m^2.
+
+    Solar constant scaled by distance and by the visible part of the disk; no panel
+    efficiency. A vertical panel gets cos(elevation), a flat one sin(elevation)."""
+    flux = SOLAR_CONSTANT_W_M2 * (AU_KM / sun.distance_km) ** 2 * sun.disk
+    el = np.radians(sun.el_deg)
+    return flux * np.clip(np.cos(el), 0, None), flux * np.clip(np.sin(el), 0, None)
 
 
 def visibility(

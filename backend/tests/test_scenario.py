@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 
+import numpy as np
 import pytest
 
 from lunar.scenario import scenario
@@ -36,3 +37,12 @@ def test_flat_south_pole_sees_earth_about_half_the_time():
 def test_longest_night_at_equator_is_about_two_weeks():
     m = run(0.0, 0.0, 2 * SYNODIC_MONTH_DAYS)
     assert m["sun"]["longest_hidden_hours"] / 24 == pytest.approx(SYNODIC_MONTH_DAYS / 2, abs=0.5)
+
+
+def test_solar_power_flat_panel_at_equator_and_vertical_panel_at_pole():
+    # Equator: a flat panel averages S/pi over a lunar day (half the time dark, sin-weighted).
+    equator = run(0.0, 0.0, SYNODIC_MONTH_DAYS)["solar_w_m2"]
+    assert equator["horizontal_avg"] == pytest.approx(1361 / np.pi, rel=0.05)
+    # Pole: the Sun grazes the horizon, so a vertical panel collects far more than a flat one.
+    pole = run(-89.9, 0.0, SYNODIC_MONTH_DAYS)["solar_w_m2"]
+    assert pole["vertical_avg"] > 20 * pole["horizontal_avg"]

@@ -7,7 +7,7 @@ Canonical reference for how this repo is built and run. Update it whenever archi
 ```
 vercel.json        Vercel Services config + public routing
 frontend/          Next.js 16 app (App Router, TypeScript, Tailwind v4, Observable Plot)
-  app/page.tsx         Page shell (header, footer)
+  app/page.tsx         Page shell (header, method section, footer); app/icon.svg is the team logo
   app/navigator.tsx    Client component: loads sites, runs scenarios, lays out results
   app/components/      Scenario form, results (headline + stats), sky chart, timeline charts
   app/lib/             API client + types, formatting helpers, chart colors
@@ -81,6 +81,8 @@ The browser calls the backend on the same origin (`fetch("/api/...")`), so there
 - A body is visible when its center is above the terrain horizon at its azimuth ("sunlit", "Earth contact"). The visible disk fraction is the circular-segment area above a locally flat horizon (Sun radius 695,700 km, Earth 6,371 km).
 - Timeline: 10-minute samples for missions ≤ 30 days, hourly up to 365 days. Rise/set times are found by linear interpolation of the margin (elevation − horizon) between samples.
 - Metrics per body: `up_at_start`, `hours_until_change` (sunset/sunrise or Earthset/Earthrise; `null` if none in the window), `visible_hours`, `visible_percent`, `longest_hidden_hours` (within the window), `disk_percent_at_start`; plus `both_percent`.
+- Solar power (`solar_irradiance_w_m2`): 1361 W/m² × (1 AU / Sun distance)² × visible disk fraction, times cos(elevation) for a vertical panel turned toward the Sun or sin(elevation) for a flat panel; reported as mission averages (`metrics.solar_w_m2.vertical_avg`, `horizontal_avg`), before panel efficiency. Tested: flat panel at the equator ≈ 1361/π; at the pole vertical ≫ flat.
+- Landing windows (`landing_windows`): for each of `count` consecutive daily landings, hourly-sampled `sun_percent`, `earth_percent`, `both_percent`, `longest_dark_hours`, `longest_blackout_hours`, `sun_up_at_start`.
 - **Sanity tests** (`tests/test_scenario.py`): equator ≈ 50% sunlit per synodic month and 100% Earth; far side 0% Earth; flat south pole ≈ 50% Earth over a year; equatorial night ≈ 14.8 days. Terrain tests (`tests/test_terrain.py`) check the smooth-sphere dip, a wall at known distance, an elevated site, and map fallback.
 - **Literature comparison** (Gläser et al. 2018, PSS 162, Table 1: 20 m LOLA, hourly 2017–2037; ours: 2026–2030 hourly). Average illumination (mean visible disk fraction): Shackleton rim S at the surface 80.0% vs 81.0% (partly visible 84.4% vs 85.5%, longest shadow 228 h vs 221 h); Connecting Ridge C1 at 2 m 85.7% vs 88.0% (87.7% at the best point within 100 m); C1 at the surface 69.2% vs 76.0%. Differences come from the period and the 20–40 m-wide crests. `tests/test_sites.py` checks C1 within ±5 points of 88.0%, Shackleton rim S ≥ 78%, and Shackleton's floor at 0% over 2026–2030.
 
@@ -100,10 +102,13 @@ The browser calls the backend on the same origin (`fetch("/api/...")`), so there
 | GET    | `/api/health`   | `{"status": "ok", "ephemeris": {"start", "end", "rows"}}` (ISO 8601 UTC) |
 | GET    | `/api/sites`    | Curated sites: `id, name, lat, lon, group (south_pole/historical/far_side), kind, note, source_title, source_url` |
 | GET    | `/api/scenario` | Timeline + metrics for one landing (below) |
+| GET    | `/api/landing-windows` | Metrics for landing on each day over a period (below) |
 
 `/api/scenario` query: `site` (curated id) **or** `lat` + `lon` (degrees, east-positive; lon normalized to −180..180); `start` (ISO 8601, naive = UTC; default: current hour); `days` (0 < days ≤ 365, default 14). The window must fit in the ephemeris coverage, else 422; unknown site → 404.
 
-Response: `site {id, name, lat, lon, terrain}`, `start`, `end`, `step_seconds` (unix seconds), `lander_height_m`, `site_height_m`, `horizon {azimuth_deg[720], elevation_deg[720]}`, `series {t, sun_az, sun_el, sun_disk, earth_az, earth_el, earth_disk}`, `intervals {sun, earth}` (visible `[start, end]` spans), `metrics {sun, earth, both_percent, sun_elevation_at_start_deg, earth_elevation_at_start_deg}`.
+Response: `site {id, name, lat, lon, terrain}`, `start`, `end`, `step_seconds` (unix seconds), `lander_height_m`, `site_height_m`, `horizon {azimuth_deg[720], elevation_deg[720]}`, `series {t, sun_az, sun_el, sun_disk, earth_az, earth_el, earth_disk}`, `intervals {sun, earth}` (visible `[start, end]` spans), `metrics {sun, earth, both_percent, sun_elevation_at_start_deg, earth_elevation_at_start_deg, solar_w_m2}`.
+
+`/api/landing-windows` query: same site/`start` parameters, `days` (1–60, default 14), `count` (1–366, default 365; trimmed so the last mission ends inside the ephemeris coverage). Response: `site`, `days`, `windows[]` (see Landing windows above).
 
 ## Local development
 

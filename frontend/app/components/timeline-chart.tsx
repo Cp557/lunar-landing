@@ -39,7 +39,7 @@ export function TimelineChart({ scenario }: { scenario: Scenario }) {
     },
     [scenario],
   );
-  return <PlotFigure render={render} />;
+  return <PlotFigure render={render} label="Timeline bars showing when the site is sunlit, has Earth in view, and both" />;
 }
 
 /** Elevation of the Sun and Earth above the local terrain horizon over time. */
@@ -70,5 +70,5 @@ export function MarginChart({ scenario }: { scenario: Scenario }) {
     },
     [scenario],
   );
-  return <PlotFigure render={render} />;
+  return <PlotFigure render={render} label="Line chart of the Sun and Earth elevation above the terrain horizon over the mission" />;
 }

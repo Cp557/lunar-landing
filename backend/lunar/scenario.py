@@ -4,7 +4,7 @@ import numpy as np
 
 from lunar.metrics import body_metrics, both_percent, longest_run, visible_intervals
 from lunar.terrain import AZIMUTHS_DEG, LANDER_HEIGHT_M, Horizon
-from lunar.visibility import visibility
+from lunar.visibility import solar_irradiance_w_m2, visibility
 
 DAY = 86_400.0
 MAX_DAYS = 365
@@ -25,6 +25,7 @@ def scenario(lat: float, lon: float, horizon: Horizon, start: float, days: float
     """Sun/Earth visibility timeline and metrics for a landing at `start` (unix seconds)."""
     t = time_grid(start, days)
     sun, earth = visibility(lat, lon, t, horizon, LANDER_HEIGHT_M)
+    vertical, horizontal = solar_irradiance_w_m2(sun)
     return {
         "start": float(t[0]),
         "end": float(t[-1]),
@@ -51,6 +52,10 @@ def scenario(lat: float, lon: float, horizon: Horizon, start: float, days: float
             "both_percent": both_percent(t, sun.margin_deg, earth.margin_deg),
             "sun_elevation_at_start_deg": float(sun.el_deg[0]),
             "earth_elevation_at_start_deg": float(earth.el_deg[0]),
+            "solar_w_m2": {
+                "vertical_avg": float(vertical.mean()),
+                "horizontal_avg": float(horizontal.mean()),
+            },
         },
     }
 

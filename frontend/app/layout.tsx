@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Wise Tortoise",
-  description: "NASA Space Apps 2026 — Lunar Landing Site Navigator",
+  title: "Lunar Landing Site Navigator · Wise Tortoise",
+  description:
+    "If we land here, on this date, how long will we have sunlight and contact with Earth? NASA Space Apps 2026.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -85,5 +85,5 @@ export function SkyChart({ scenario }: { scenario: Scenario }) {
     [scenario],
   );
 
-  return <PlotFigure render={render} />;
+  return <PlotFigure render={render} label="Panorama of the terrain horizon with the paths of the Sun and Earth during the mission" />;
 }

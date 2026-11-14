@@ -87,7 +87,7 @@ export function LandingWindowsPanel({ query, onPick }: { query: ScenarioQuery; o
       {error && <p role="alert" className="mt-2 text-sm text-red-300">{error}</p>}
       {data && (
         <>
-          <PlotFigure render={render} />
+          <PlotFigure render={render} label="Chart of percent of mission sunlit, with Earth in view, and both, for each landing date over the next year" />
           <h3 className="mt-3 text-sm font-semibold">Top dates by time with both Sun and Earth</h3>
           <ol className="mt-1 grid gap-1 text-sm sm:grid-cols-2">
             {best.map((w: LandingWindow) => (
