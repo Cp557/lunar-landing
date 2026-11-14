@@ -59,4 +59,6 @@ Checks:
 
 ## Deployment
 
-Import the GitHub repo into Vercel with project root `./`. Vercel detects both services from `vercel.json`. `.vercel/` folders are git-ignored.
+Deployed as one Vercel project (`lunar-landing`, team ConnorBuilds) connected to GitHub; pushes to `main` deploy to production.
+
+To recreate: import the GitHub repo in the Vercel dashboard with Root Directory `./` and Application Preset **Services** (detected from `vercel.json`), then click **Deploy**. Do not use "Import single project" on either service; that creates separate projects on separate domains and breaks same-origin `/api` routing. No environment variables are needed. `.vercel/` folders are git-ignored.
