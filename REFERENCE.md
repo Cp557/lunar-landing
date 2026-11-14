@@ -6,21 +6,33 @@ Canonical reference for how this repo is built and run. Update it whenever archi
 
 ```
 vercel.json        Vercel Services config + public routing
-frontend/          Next.js 16 app (App Router, TypeScript, Tailwind v4)
-  app/page.tsx         Home page
-  app/hello-button.tsx Client component that calls the backend
+frontend/          Next.js 16 app (App Router, TypeScript, Tailwind v4, Observable Plot)
+  app/page.tsx         Page shell (header, footer)
+  app/navigator.tsx    Client component: loads sites, runs scenarios, lays out results
+  app/components/      Scenario form, results (headline + stats), sky chart, timeline charts
+  app/lib/             API client + types, formatting helpers, chart colors
   public/              Static assets (logo)
 backend/           FastAPI app, managed with uv
   main.py              FastAPI `app` (entrypoint `main:app`): routes only
   lunar/               Physics package (pure functions, no I/O except loading data/)
     geometry.py          Sphere geometry, East-North-Up frames, azimuth/elevation
     ephemeris.py         Sun/Earth positions seen from any site (cached Horizons table)
+    terrain.py           LOLA polar maps, horizon profiles, bare-sphere fallback
+    visibility.py        Sun/Earth above the terrain horizon; visible disk fraction
+    metrics.py           Rise/set crossings, visible intervals, mission metrics
+    sites.py             Curated sites + choice of horizon source per site
+    scenario.py          Site + start + mission length → timeline and metrics
   data/                Committed data the API loads at runtime
     ephemeris.npz        Horizons sub-solar/sub-Earth table, 2026-01-01 → 2031-01-01, 30 min
-  scripts/             One-off data builders (run locally, need network)
+    sites.json           Curated sites with cited coordinates
+    horizons.json        Precomputed high-resolution horizons for curated south-polar sites
+    terrain/ldem_75s_240m.npz  Bundled 240 m LOLA map (75°S–90°S) for live horizons
+  scripts/             One-off data builders (run locally)
     horizons.py          Minimal Horizons API client
     fetch_ephemeris.py   Builds data/ephemeris.npz
     fetch_validation.py  Builds tests/fixtures/horizons_topocentric.json
+    build_terrain.py     Builds data/terrain/ldem_75s_240m.npz from raw-data
+    build_horizons.py    Builds data/horizons.json from raw-data (run with -m)
   tests/               pytest suite (+ fixtures)
   pyproject.toml       Python deps; uv.lock pins them
 raw-data/          Git-ignored downloads (LOLA LDEM_75S_120M, LDEM_85S_20M)
@@ -57,18 +69,41 @@ The browser calls the backend on the same origin (`fetch("/api/...")`), so there
 - Times outside the table raise `ValueError`.
 - **Validation** (`tests/test_ephemeris.py`): against 250 Horizons topocentric "airless apparent" positions (5 sites × Sun/Earth × 25 times, off the table grid), worst-case error is 0.0002° (Sun) and 0.006° (Earth; mostly aberration, which the model omits). Tolerance: 0.05°.
 
+### Terrain horizon (`lunar/terrain.py`)
+- LOLA polar maps: polar stereographic on the 1737.4 km sphere, true scale at the pole, heights = DN × 0.5 m above the sphere. Pixel ↔ position: `x = (col − c0)·scale`, `y = −(row − c0)·scale`, `c0 = N/2 − 0.5`, east lon = `atan2(x, y)`, lat = `−90° + 2·atan(r / 2R)` (from the PDS label and `DSMAP_POLAR.CAT`; orientation verified on Shackleton's floor and Malapert).
+- Horizon profile: 720 rays (0.5° azimuth). Along each ray, samples one map pixel apart, each placed exactly on the sphere at great-circle distance `s` (angle `s/R`), with bilinear heights. Elevation angle from the observer at radius `R + site height + 2 m`; the profile is the max per ray. Curvature is exact, not approximated.
+- Map choice per site: the finest map covering a 15 km near field supplies site height and near field; the coarsest map continues to 300 km. Beyond any map edge the bare-sphere limb is used.
+- `smooth_horizon`: bare sphere through the site, limb dip `acos(r/(r + 2 m))` ≈ 0.087°.
+- Sources by site (`lunar/sites.py`): curated south-polar sites → precomputed `data/horizons.json` (LOLA 20 m near field + 120 m); other points in 75°S–90°S → live from the bundled 240 m map (~0.05 s); elsewhere → smooth sphere. The label is returned as `site.terrain`.
+- Resolution matters near the pole (e.g., 5-year sunlight at the pole: 25% with 20 m, 31% with 120 m, 47% with 240 m), which is why live custom-coordinate results are labelled approximate.
+
+### Visibility and metrics (`lunar/visibility.py`, `lunar/metrics.py`)
+- A body is visible when its center is above the terrain horizon at its azimuth ("sunlit", "Earth contact"). The visible disk fraction is the circular-segment area above a locally flat horizon (Sun radius 695,700 km, Earth 6,371 km).
+- Timeline: 10-minute samples for missions ≤ 30 days, hourly up to 365 days. Rise/set times are found by linear interpolation of the margin (elevation − horizon) between samples.
+- Metrics per body: `up_at_start`, `hours_until_change` (sunset/sunrise or Earthset/Earthrise; `null` if none in the window), `visible_hours`, `visible_percent`, `longest_hidden_hours` (within the window), `disk_percent_at_start`; plus `both_percent`.
+- **Sanity tests** (`tests/test_scenario.py`): equator ≈ 50% sunlit per synodic month and 100% Earth; far side 0% Earth; flat south pole ≈ 50% Earth over a year; equatorial night ≈ 14.8 days. Terrain tests (`tests/test_terrain.py`) check the smooth-sphere dip, a wall at known distance, an elevated site, and map fallback.
+- **Literature comparison** (Gläser et al. 2018, PSS 162, Table 1: 20 m LOLA, hourly 2017–2037; ours: 2026–2030 hourly). Average illumination (mean visible disk fraction): Shackleton rim S at the surface 80.0% vs 81.0% (partly visible 84.4% vs 85.5%, longest shadow 228 h vs 221 h); Connecting Ridge C1 at 2 m 85.7% vs 88.0% (87.7% at the best point within 100 m); C1 at the surface 69.2% vs 76.0%. Differences come from the period and the 20–40 m-wide crests. `tests/test_sites.py` checks C1 within ±5 points of 88.0%, Shackleton rim S ≥ 78%, and Shackleton's floor at 0% over 2026–2030.
+
+### Curated sites (`data/sites.json`)
+29 sites (south pole incl. the 9 NASA Artemis III candidate regions, Apollo and other near-side landings, far side), each with a citation. Artemis III region centers are approximate (means of candidate sites in Wueller et al. 2026, Table A1); NASA published only a map. Coordinates were researched with AI assistance from the cited sources.
+
 ## Invariants
 
-- **FastAPI routes must include the `/api` prefix.** Rewrites keep the original path, so `/api/hello` reaches FastAPI as `/api/hello`.
+- **FastAPI routes must include the `/api` prefix.** Rewrites keep the original path, so `/api/health` reaches FastAPI as `/api/health`.
 - **Next.js must not define its own `app/api/*` routes.** They would be shadowed by the backend rewrite.
 - The `/api` rewrite must stay before the frontend catch-all.
 
 ## API
 
-| Method | Path          | Response |
-|--------|---------------|----------|
-| GET    | `/api/hello`  | `{"message": "Hello from FastAPI"}` |
-| GET    | `/api/health` | `{"status": "ok", "ephemeris": {"start", "end", "rows"}}` (ISO 8601 UTC) |
+| Method | Path            | Response |
+|--------|-----------------|----------|
+| GET    | `/api/health`   | `{"status": "ok", "ephemeris": {"start", "end", "rows"}}` (ISO 8601 UTC) |
+| GET    | `/api/sites`    | Curated sites: `id, name, lat, lon, group (south_pole/historical/far_side), kind, note, source_title, source_url` |
+| GET    | `/api/scenario` | Timeline + metrics for one landing (below) |
+
+`/api/scenario` query: `site` (curated id) **or** `lat` + `lon` (degrees, east-positive; lon normalized to −180..180); `start` (ISO 8601, naive = UTC; default: current hour); `days` (0 < days ≤ 365, default 14). The window must fit in the ephemeris coverage, else 422; unknown site → 404.
+
+Response: `site {id, name, lat, lon, terrain}`, `start`, `end`, `step_seconds` (unix seconds), `lander_height_m`, `site_height_m`, `horizon {azimuth_deg[720], elevation_deg[720]}`, `series {t, sun_az, sun_el, sun_disk, earth_az, earth_el, earth_disk}`, `intervals {sun, earth}` (visible `[start, end]` spans), `metrics {sun, earth, both_percent, sun_elevation_at_start_deg, earth_elevation_at_start_deg}`.
 
 ## Local development
 
