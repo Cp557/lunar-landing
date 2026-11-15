@@ -56,15 +56,16 @@ function Readout({ title, rows }: { title: React.ReactNode; rows: [string, React
   );
 }
 
-/** Sky view and timelines with one shared time cursor that can be dragged or played. */
-export function MissionView({
+/**
+ * The mission over time: Play and the time slider (shared by the map's shadows and the sky views),
+ * live readouts at the chosen time, and the timelines with a cursor at that time.
+ */
+export function MissionTimeline({
   scenario,
-  sites,
   index,
   setIndex,
 }: {
   scenario: Scenario;
-  sites: Site[];
   index: number;
   setIndex: (update: number | ((i: number) => number)) => void;
 }) {
@@ -87,127 +88,76 @@ export function MissionView({
   const earthUp = s.earth_el[index] > horizonAt(scenario, s.earth_az[index]);
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>The sky from the lander</CardTitle>
-          <CardDescription>
-            The real skyline of hills and crater rims around the landing site. The Sun and Earth are visible only when they
-            are above it. Drag the slider or press play to move through the mission; switch views below.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid min-w-0 gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-24 shrink-0"
-              onClick={() => {
-                if (atEnd) setIndex(0);
-                setPlaying(atEnd || !isPlaying);
-              }}
-            >
-              <HugeiconsIcon icon={isPlaying ? PauseIcon : atEnd ? Refresh01Icon : PlayIcon} strokeWidth={2} data-icon="inline-start" />
-              {isPlaying ? "Pause" : atEnd ? "Replay" : "Play"}
-            </Button>
-            <Slider
-              aria-label="Mission time"
-              min={0}
-              max={last}
-              step={1}
-              value={[index]}
-              onValueChange={([value]) => {
-                setPlaying(false);
-                setIndex(value);
-              }}
-              className="flex-1"
-            />
-          </div>
-          <div className="grid max-w-4xl grid-cols-2 gap-2 sm:grid-cols-3">
-            <div className="col-span-2 sm:col-span-1">
-              <Readout
-                title="Mission time"
-                rows={[
-                  ["Day", `${((t - scenario.start) / 86400).toFixed(1)} of ${totalDays}`],
-                  ["UTC", formatUtc(t).replace(" UTC", "")],
-                ]}
-              />
-            </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Mission timeline</CardTitle>
+        <CardDescription>
+          Top chart: when the lander has sunlight, Earth contact, or both. Bottom: how high the Sun and Earth are above the
+          skyline — above the white line means visible. Press play or drag the slider to move the white cursor; the map&apos;s
+          shadows and the sky views below follow it.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid min-w-0 gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-24 shrink-0"
+            onClick={() => {
+              if (atEnd) setIndex(0);
+              setPlaying(atEnd || !isPlaying);
+            }}
+          >
+            <HugeiconsIcon icon={isPlaying ? PauseIcon : atEnd ? Refresh01Icon : PlayIcon} strokeWidth={2} data-icon="inline-start" />
+            {isPlaying ? "Pause" : atEnd ? "Replay" : "Play"}
+          </Button>
+          <Slider
+            aria-label="Mission time"
+            min={0}
+            max={last}
+            step={1}
+            value={[index]}
+            onValueChange={([value]) => {
+              setPlaying(false);
+              setIndex(value);
+            }}
+            className="flex-1"
+          />
+        </div>
+        <div className="grid max-w-4xl grid-cols-2 gap-2 sm:grid-cols-3">
+          <div className="col-span-2 sm:col-span-1">
             <Readout
-              title={
-                <>
-                  <Dot color="var(--sun)" hollow={!sunUp} /> Sunlight: {sunUp ? "yes" : "no"}
-                </>
-              }
+              title="Mission time"
               rows={[
-                ["Sun height", degrees(s.sun_el[index])],
-                ["Disk visible", `${Math.round(s.sun_disk[index] * 100)}%`],
-              ]}
-            />
-            <Readout
-              title={
-                <>
-                  <Dot color="var(--earth)" hollow={!earthUp} /> Earth contact: {earthUp ? "yes" : "no"}
-                </>
-              }
-              rows={[
-                ["Earth height", degrees(s.earth_el[index])],
-                ["Earth lit", `${Math.round(s.earth_lit[index] * 100)}%`],
+                ["Day", `${((t - scenario.start) / 86400).toFixed(1)} of ${totalDays}`],
+                ["UTC", formatUtc(t).replace(" UTC", "")],
               ]}
             />
           </div>
-          <Tabs defaultValue="panorama">
-            <TabsList className="w-full sm:w-fit">
-              <TabsTrigger value="panorama" className="px-2 text-xs sm:px-3 sm:text-sm">
-                360° chart
-              </TabsTrigger>
-              <TabsTrigger value="dome" className="px-2 text-xs sm:px-3 sm:text-sm">
-                Sky map
-              </TabsTrigger>
-              <TabsTrigger value="globe" className="px-2 text-xs sm:px-3 sm:text-sm">
-                Globe
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="panorama" className="grid gap-2 pt-2">
-              <SkyChart scenario={scenario} index={index} />
-              <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                <li className="flex items-center gap-1.5">
-                  <Dot color={COLORS.sun} /> Sun&apos;s path (visible)
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <Dot color={COLORS.earth} /> Earth&apos;s path (visible)
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <Dot color={COLORS.muted} /> hidden behind terrain
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <span className="inline-block h-2.5 w-4 rounded-sm" style={{ background: COLORS.terrain }} /> terrain skyline
-                </li>
-                <li>Heights are stretched so the low skyline is easy to see.</li>
-              </ul>
-            </TabsContent>
-            <TabsContent value="dome" className="pt-2">
-              <SkyDome scenario={scenario} index={index} />
-            </TabsContent>
-            <TabsContent value="globe" className="pt-2">
-              <MoonGlobe
-                sites={sites}
-                site={scenario.site}
-                subsolar={{ lat: s.subsolar_lat[index], lon: s.subsolar_lon[index] }}
-              />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Mission timeline</CardTitle>
-          <CardDescription>
-            Top: when the lander has sunlight, Earth contact, or both. Bottom: how high the Sun and Earth are above the
-            skyline — above the white line means visible. The white cursor is the time chosen above.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-1">
+          <Readout
+            title={
+              <>
+                <Dot color="var(--sun)" hollow={!sunUp} /> Sunlight: {sunUp ? "yes" : "no"}
+              </>
+            }
+            rows={[
+              ["Sun height", degrees(s.sun_el[index])],
+              ["Disk visible", `${Math.round(s.sun_disk[index] * 100)}%`],
+            ]}
+          />
+          <Readout
+            title={
+              <>
+                <Dot color="var(--earth)" hollow={!earthUp} /> Earth contact: {earthUp ? "yes" : "no"}
+              </>
+            }
+            rows={[
+              ["Earth height", degrees(s.earth_el[index])],
+              ["Earth lit", `${Math.round(s.earth_lit[index] * 100)}%`],
+            ]}
+          />
+        </div>
+        <div className="grid gap-1">
           <TimelineChart scenario={scenario} time={t} />
           <ElevationChart scenario={scenario} time={t} />
           <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -221,8 +171,63 @@ export function MissionView({
               <span className="inline-block h-2.5 w-4 rounded-sm" style={{ background: COLORS.track }} /> below the skyline = hidden
             </li>
           </ul>
-        </CardContent>
-      </Card>
-    </>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** The sky around the lander at the time on the mission slider: 360° chart, round sky map, 3D globe. */
+export function SkyViews({ scenario, sites, index }: { scenario: Scenario; sites: Site[]; index: number }) {
+  const s = scenario.series;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>The sky from the lander</CardTitle>
+        <CardDescription>
+          The real skyline of hills and crater rims around the landing site. The Sun and Earth are visible only when they
+          are above it. These views follow the mission slider above.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid min-w-0 gap-3">
+        <Tabs defaultValue="panorama">
+          <TabsList className="w-full sm:w-fit">
+            <TabsTrigger value="panorama" className="px-2 text-xs sm:px-3 sm:text-sm">
+              360° chart
+            </TabsTrigger>
+            <TabsTrigger value="dome" className="px-2 text-xs sm:px-3 sm:text-sm">
+              Sky map
+            </TabsTrigger>
+            <TabsTrigger value="globe" className="px-2 text-xs sm:px-3 sm:text-sm">
+              Globe
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="panorama" className="grid gap-2 pt-2">
+            <SkyChart scenario={scenario} index={index} />
+            <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              <li className="flex items-center gap-1.5">
+                <Dot color={COLORS.sun} /> Sun&apos;s path (visible)
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Dot color={COLORS.earth} /> Earth&apos;s path (visible)
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Dot color={COLORS.muted} /> hidden behind terrain
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="inline-block h-2.5 w-4 rounded-sm" style={{ background: COLORS.terrain }} /> terrain skyline
+              </li>
+              <li>Heights are stretched so the low skyline is easy to see.</li>
+            </ul>
+          </TabsContent>
+          <TabsContent value="dome" className="pt-2">
+            <SkyDome scenario={scenario} index={index} />
+          </TabsContent>
+          <TabsContent value="globe" className="pt-2">
+            <MoonGlobe sites={sites} site={scenario.site} subsolar={{ lat: s.subsolar_lat[index], lon: s.subsolar_lon[index] }} />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 }

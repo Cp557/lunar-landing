@@ -1,6 +1,6 @@
 "use client";
 
-import { Download04Icon, EarthIcon, Sun03Icon } from "@hugeicons/core-free-icons";
+import { CheckmarkBadge01Icon, Download04Icon, EarthIcon, Sun03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import { Badge } from "@/components/ui/badge";
@@ -139,6 +139,17 @@ export function Answer({ scenario }: { scenario: Scenario }) {
           text={headline(earth, { up: "Earth in view", down: "Earth hidden", rises: "Earthrise", sets: "Earthset" })}
         />
       </div>
+      {/* Same figures as "How we calculate this" (method.tsx): backend tests/test_ephemeris.py and tests/test_sites.py. */}
+      <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+        <HugeiconsIcon icon={CheckmarkBadge01Icon} strokeWidth={2} className="mt-px size-3.5 shrink-0" style={{ color: "var(--both)" }} />
+        <span>
+          Checked: Sun and Earth positions match NASA JPL Horizons to 0.0002° and 0.006°; sunlight on Shackleton&apos;s rim
+          matches a published study (80.0% vs 81.0%).{" "}
+          <a href="#method" className="underline underline-offset-2 hover:text-foreground">
+            How we calculate this
+          </a>
+        </span>
+      </p>
     </section>
   );
 }

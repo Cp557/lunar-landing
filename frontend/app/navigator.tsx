@@ -11,7 +11,7 @@ import { CompareTable } from "./components/compare";
 import { LandingWindowsPanel } from "./components/landing-windows";
 import { Answer, Details } from "./components/results";
 import { CUSTOM, type FormState, ScenarioForm, toQuery } from "./components/scenario-form";
-import { MissionView } from "./components/mission-view";
+import { MissionTimeline, SkyViews } from "./components/mission-view";
 import { SouthPoleMap } from "./components/south-pole-map";
 import { fetchScenario, fetchSites } from "./lib/api";
 import type { Scenario, ScenarioQuery, Site } from "./lib/types";
@@ -97,6 +97,7 @@ export function Navigator() {
   const inCompare = scenario !== null && compare.includes(scenario);
 
   const dim = `transition-opacity ${busy ? "opacity-60" : ""}`;
+  const scenarioKey = scenario ? `${scenario.site.lat},${scenario.site.lon},${scenario.start},${scenario.end}` : "";
 
   return (
     <div className="space-y-4">
@@ -147,14 +148,10 @@ export function Navigator() {
       {compare.length > 0 && <CompareTable scenarios={compare} onRemove={(i) => setCompare(compare.filter((_, j) => j !== i))} />}
       {scenario && (
         <div className={`space-y-4 ${dim}`}>
+          {/* Keyed by scenario so playback and the chosen sky view reset for each new evaluation. */}
+          <MissionTimeline key={`timeline-${scenarioKey}`} scenario={scenario} index={index} setIndex={setIndex} />
           <Details scenario={scenario} />
-          <MissionView
-            key={`${scenario.site.lat},${scenario.site.lon},${scenario.start},${scenario.end}`}
-            scenario={scenario}
-            sites={sites}
-            index={index}
-            setIndex={setIndex}
-          />
+          <SkyViews key={`sky-${scenarioKey}`} scenario={scenario} sites={sites} index={index} />
           <LandingWindowsPanel
             key={`${scenario.site.lat},${scenario.site.lon}`}
             query={queryFor(scenario)}
