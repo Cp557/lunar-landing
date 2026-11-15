@@ -73,7 +73,8 @@ export function LanderView({ scenario, index }: { scenario: Scenario; index: num
   const y = (el: number) => HEIGHT - (el - bottom) * pxPerDeg * stretch;
   const inView = (az: number) => Math.abs(wrap(az - center)) <= FOV_DEG / 2 + 5;
   // A body far below the horizon is under the bottom of the view: pin its label there and say how far down it is.
-  const labelY = (el: number, r: number) => Math.min(y(el) - r - 8, HEIGHT - 26);
+  // Earth's pinned label sits one line higher, so the two never overlap (at full Moon both are below, side by side).
+  const labelY = (el: number, r: number, line: number) => Math.min(y(el) - r - 8, HEIGHT - 26 - line * 16);
   const hiddenLabel = (name: string, el: number) =>
     el < bottom ? `${name} ↓ ${Math.round(-el)}° below the horizon` : `${name} (behind terrain)`;
 
@@ -155,12 +156,12 @@ export function LanderView({ scenario, index }: { scenario: Scenario; index: num
             <circle cx={x(earth.az)} cy={y(earth.el)} r={earthR} fill="none" stroke={COLORS.earth} strokeDasharray="3 3" opacity={0.8} />
           )}
           {inView(sun.az) && (
-            <text x={x(sun.az)} y={labelY(sun.el, sunR)} textAnchor="middle" fill={COLORS.text} fontSize={12} fontWeight={600}>
+            <text x={x(sun.az)} y={labelY(sun.el, sunR, 0)} textAnchor="middle" fill={COLORS.text} fontSize={12} fontWeight={600}>
               {sunVisible ? "Sun" : hiddenLabel("Sun", sun.el)}
             </text>
           )}
           {inView(earth.az) && (
-            <text x={x(earth.az)} y={labelY(earth.el, earthR)} textAnchor="middle" fill={COLORS.text} fontSize={12} fontWeight={600}>
+            <text x={x(earth.az)} y={labelY(earth.el, earthR, 1)} textAnchor="middle" fill={COLORS.text} fontSize={12} fontWeight={600}>
               {earthVisible ? `Earth · ${Math.round(earth.lit * 100)}% lit` : hiddenLabel("Earth", earth.el)}
             </text>
           )}
