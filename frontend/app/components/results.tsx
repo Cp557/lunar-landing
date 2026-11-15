@@ -35,7 +35,7 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 
 /** The answer to "how long will we have sunlight and contact with Earth?" for one scenario. */
 export function Results({ scenario }: { scenario: Scenario }) {
-  const { sun, earth, both_percent, sun_elevation_at_start_deg, solar_w_m2 } = scenario.metrics;
+  const { sun, earth, both_percent, solar_w_m2 } = scenario.metrics;
   const days = (scenario.end - scenario.start) / 86400;
   return (
     <section className="space-y-3">
@@ -65,7 +65,7 @@ export function Results({ scenario }: { scenario: Scenario }) {
         <Stat label="Sun + Earth" value={formatPercent(both_percent)} />
         <Stat
           label="Sun at landing"
-          value={`${sun_elevation_at_start_deg.toFixed(2)}°`}
+          value={`${scenario.series.sun_el[0].toFixed(2)}°`}
           hint={`${sun.disk_percent_at_start.toFixed(0)}% of disk visible`}
         />
         <Stat

@@ -141,3 +141,5 @@ Rebuilding data (only needed if the coverage window changes): `cd backend/script
 Deployed as one Vercel project (`lunar-landing`, team ConnorBuilds) connected to GitHub; pushes to `main` deploy to production.
 
 To recreate: import the GitHub repo in the Vercel dashboard with Root Directory `./` and Application Preset **Services** (detected from `vercel.json`), then click **Deploy**. Do not use "Import single project" on either service; that creates separate projects on separate domains and breaks same-origin `/api` routing. No environment variables are needed. `.vercel/` folders are git-ignored.
+
+Production URL: https://lunar-landing-delta.vercel.app. Vercel's automatic bot protection can put one IP behind a "Security Checkpoint" (HTTP 403 + JavaScript challenge) after many rapid scripted requests (e.g. polling a deploy with curl); browsers pass it automatically and it clears on its own. Avoid tight polling loops against production.
