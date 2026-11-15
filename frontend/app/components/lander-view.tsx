@@ -45,7 +45,7 @@ function litPath(r: number, k: number): string {
  */
 export function LanderView({ scenario, index }: { scenario: Scenario; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(800);
+  const [width, setWidth] = useState(0); // measured from the container; nothing is drawn until then
   const [look, setLook] = useState<Look>("sun");
   const [freeAz, setFreeAz] = useState(0);
   const drag = useRef<{ x: number; az: number } | null>(null);
@@ -88,10 +88,11 @@ export function LanderView({ scenario, index }: { scenario: Scenario; index: num
   const toSun = Math.atan2(-(sun.el - earth.el) * pxPerDeg * stretch, wrap(sun.az - earth.az) * pxPerDeg);
 
   return (
-    <div className="grid gap-2">
+    <div className="grid min-w-0 gap-2">
       <div
         ref={ref}
-        className="relative w-full cursor-grab touch-none overflow-hidden rounded-3xl select-none active:cursor-grabbing"
+        style={{ height: HEIGHT }}
+        className="relative w-full min-w-0 cursor-grab touch-none overflow-hidden rounded-3xl select-none active:cursor-grabbing"
         onPointerDown={(e) => {
           drag.current = { x: e.clientX, az: center };
           e.currentTarget.setPointerCapture(e.pointerId);
@@ -105,7 +106,8 @@ export function LanderView({ scenario, index }: { scenario: Scenario; index: num
           drag.current = null;
         }}
       >
-        <svg width={width} height={HEIGHT} role="img" aria-label="First-person view from the lander showing the terrain skyline, the Sun and Earth">
+        {width > 0 && (
+        <svg width={width} height={HEIGHT} className="block" role="img" aria-label="First-person view from the lander showing the terrain skyline, the Sun and Earth">
           <defs>
             <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
               <stop offset="0" stopColor="#02040a" />
@@ -164,6 +166,7 @@ export function LanderView({ scenario, index }: { scenario: Scenario; index: num
             </text>
           ))}
         </svg>
+        )}
       </div>
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
         <Button variant={look === "sun" ? "secondary" : "ghost"} size="xs" onClick={() => setLook("sun")}>

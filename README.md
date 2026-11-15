@@ -19,7 +19,10 @@ Pick a landing site (29 curated sites with sources, including NASA's 9 Artemis I
 - **Risk:** the longest dark period (battery/thermal survival) and the longest communication blackout.
 - **Sky view:** the real terrain horizon with the Sun's and Earth's paths over the mission.
 - **Timeline:** when the site is sunlit and when Earth is visible, and how far above the horizon each is.
-- **Mission playback:** scrub or play through the mission and watch the Sun circle the horizon and Earth rise and set.
+- **Mission brief:** one plain-language sentence plus Good/Fair/Poor ratings for power and communications.
+- **Mission playback:** scrub or play through the mission and watch the Sun circle the horizon and Earth rise and set, in four views: a first-person **lander view** (with Earth's real phase), a **360° chart**, a round **sky map**, and a **3D Moon globe** lit by the Sun at that moment.
+- **South-pole map layers:** sunlight % and Earth-contact % heat maps (2026–2030) and **live terrain shadows** that move with the time slider.
+- **Help and export:** hover explanations for every term and a CSV download of the timeline.
 - **Comparison:** up to three scenarios side by side.
 - **Best landing dates:** the same site and mission length for every landing day over the next year.
 - **Solar power:** average sunlight on a vertical panel turned to the Sun vs a flat panel.
@@ -28,7 +31,7 @@ Pick a landing site (29 curated sites with sources, including NASA's 9 Artemis I
 ## How it works
 
 1. **Sun and Earth positions** come from NASA JPL [Horizons](https://ssd.jpl.nasa.gov/horizons/): the sub-solar and sub-Earth points on the Moon every 30 minutes (2026–2030). Vector math turns them into sky positions for any site. Checked against Horizons' own lunar-surface answers to 0.006°.
-2. **The local horizon** comes from LRO **LOLA** elevation maps: 720 rays out to 300 km on the curved Moon (20 m maps near curated south-pole sites, 120 m beyond; a bundled 240 m map for custom coordinates).
+2. **The local horizon** comes from LRO **LOLA** elevation maps: 720 rays out to 300 km on the curved Moon (20 m maps near curated south-pole sites, 120 m beyond; bundled 120 m + 240 m maps for custom coordinates).
 3. **Visibility:** the site is sunlit when the Sun's center is above the terrain in its direction; it has Earth contact when Earth's center is.
 
 Full details and validation: [REFERENCE.md](REFERENCE.md). Build plan: [PLAN.md](PLAN.md).
@@ -59,9 +62,10 @@ Tests: `cd backend && uv run pytest -q`
 - LOLA team, `DSMAP_POLAR.CAT` projection definition — https://imbrium.mit.edu/CATALOG/DSMAP_POLAR.CAT
 - Site coordinates: cited per site in `backend/data/sites.json` (shown in the app)
 - Site icon: "Lander Galaxy" by SVG Repo, CC0 — https://www.svgrepo.com/svg/275140/lander-galaxy
+- Globe texture: NASA's Scientific Visualization Studio, CGI Moon Kit (LRO LROC color mosaic with LOLA-filled poles) — https://svs.gsfc.nasa.gov/4720
 - Tools also listed by the challenge: [Quickmap](https://quickmap.lroc.asu.edu/), [Moon Trek](https://trek.nasa.gov/moon/)
 
-Libraries: Next.js (MIT), React (MIT), Tailwind CSS (MIT), shadcn/ui (MIT), Radix UI (MIT), Hugeicons free icons (MIT), class-variance-authority (Apache-2.0), cn (MIT), tw-animate-css (MIT), Observable Plot (ISC), Outfit font (SIL OFL 1.1), FastAPI (MIT), numpy (BSD-3-Clause), truststore (MIT, data scripts only), pytest (MIT, tests only).
+Libraries: Next.js (MIT), React (MIT), Tailwind CSS (MIT), shadcn/ui (MIT), Radix UI (MIT), Hugeicons free icons (MIT), class-variance-authority (Apache-2.0), cn (MIT), tw-animate-css (MIT), Observable Plot (ISC), three.js (MIT), Outfit font (SIL OFL 1.1), FastAPI (MIT), numpy (BSD-3-Clause), truststore (MIT, data scripts only), pytest (MIT, tests only).
 
 ## Use of AI
 

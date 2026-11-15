@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from lunar.ephemeris import load_ephemeris, sky_track
+from lunar.ephemeris import load_ephemeris, sky_track, subsolar_point
 from lunar.geometry import angular_separation_deg
 
 FIXTURES = json.loads(
@@ -36,3 +36,10 @@ def test_rejects_times_outside_table():
     eph = load_ephemeris()
     with pytest.raises(ValueError):
         eph.vectors(np.array([eph.start - 3600]))
+
+
+def test_subsolar_point_stays_near_lunar_equator():
+    eph = load_ephemeris()
+    lat, lon = subsolar_point(np.linspace(eph.start, eph.end, 500))
+    assert np.abs(lat).max() < 1.7  # lunar axial tilt to the ecliptic is about 1.54 deg
+    assert np.all((lon >= -180) & (lon <= 180))

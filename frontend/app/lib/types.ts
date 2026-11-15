@@ -40,6 +40,8 @@ export type Scenario = {
     earth_el: number[];
     earth_disk: number[];
     earth_lit: number[]; // illuminated fraction of Earth's disk (0 = new Earth, 1 = full)
+    subsolar_lat: number[]; // point on the Moon directly under the Sun (degrees)
+    subsolar_lon: number[];
   };
   intervals: { sun: Interval[]; earth: Interval[] };
   metrics: {

@@ -25,10 +25,15 @@ def test_scenario_for_custom_south_polar_point_uses_live_terrain():
     r = client.get("/api/scenario", params={"lat": -89.5, "lon": 0, "start": START, "days": 14})
     assert r.status_code == 200
     body = r.json()
-    assert body["site"]["terrain"] == "LOLA 240 m (approximate)"
+    assert body["site"]["terrain"] == "LOLA 120 m + 240 m (approximate)"
     assert len(body["series"]["t"]) == 14 * 24 * 6 + 1
     assert len(body["horizon"]["elevation_deg"]) == 720
     assert set(body["metrics"]) >= {"sun", "earth", "both_percent"}
+
+
+def test_scenario_between_80s_and_84s_uses_240m_only():
+    body = client.get("/api/scenario", params={"lat": -81, "lon": 20, "start": START, "days": 2}).json()
+    assert body["site"]["terrain"] == "LOLA 240 m (approximate)"
 
 
 def test_scenario_far_from_pole_uses_smooth_sphere():

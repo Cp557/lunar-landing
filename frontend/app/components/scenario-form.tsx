@@ -112,7 +112,7 @@ export function ScenarioForm({
                 <Input id="lon" type="number" step="any" min={-180} max={360} required value={form.lon} onChange={(e) => set({ lon: e.target.value })} />
               </Field>
               <p className="col-span-2 text-xs text-muted-foreground">
-                Real terrain between 75°S and 90°S (240 m, approximate); smooth Moon elsewhere.
+                Real terrain from 75°S to the pole (120 m near the pole, 240 m farther out; approximate); smooth Moon elsewhere.
               </p>
             </div>
           )}

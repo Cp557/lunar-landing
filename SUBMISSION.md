@@ -19,9 +19,9 @@ If a lander touches down here, on this date, how long will it have sunlight and 
 - the longest dark period (battery and thermal survival) and longest communication blackout;
 - average sunlight on a vertical vs a flat solar panel;
 - a sky panorama of the terrain horizon with the Sun's and Earth's paths, and timelines of every window.
-Scenarios can be compared side by side, and a "best landing dates" scan evaluates every landing day over the next year. Every scenario has a shareable link.
+Every scenario starts with a plain-language mission brief and Good/Fair/Poor ratings for power and communications. You can watch the mission play out in a first-person view from the lander (with Earth's real phase), a round sky map, a 360° chart, or on a 3D Moon lit by the Sun at that moment. On the south-pole map you can switch on sunlight and Earth-contact heat maps or live terrain shadows that sweep around the pole as time moves. Scenarios can be compared side by side, a "best landing dates" scan evaluates every landing day over the next year, every term has a hover explanation, results download as CSV, and every scenario has a shareable link.
 
-**How it works.** We query JPL Horizons once for where the Sun and Earth are directly overhead on the Moon (every 30 minutes, 2026–2030), then compute the exact direction to each from any site, including Earth's parallax. The local horizon comes from LOLA elevation maps: 720 rays cast out to 300 km from a 2 m-high lander, with every sample placed on the curved Moon (20 m maps near curated south-pole sites, 120 m beyond, a 240 m map for custom points). A site is sunlit when the Sun's center is above that terrain horizon and has Earth contact when Earth's center is.
+**How it works.** We query JPL Horizons once for where the Sun and Earth are directly overhead on the Moon (every 30 minutes, 2026–2030), then compute the exact direction to each from any site, including Earth's parallax. The local horizon comes from LOLA elevation maps: 720 rays cast out to 300 km from a 2 m-high lander, with every sample placed on the curved Moon (20 m maps near curated south-pole sites, 120 m beyond; 120 m + 240 m maps for custom points). A site is sunlit when the Sun's center is above that terrain horizon and has Earth contact when Earth's center is.
 
 **How we know it's right.** Our Sun and Earth directions match Horizons' own lunar-surface answers to within 0.0002° and 0.006° (250 test cases). Shackleton crater's floor gets 0% sunlight over five years, as a permanently shadowed region should. Against a published illumination study (Gläser et al. 2018) we get 80.0% vs 81.0% average illumination on Shackleton's rim and 85.7% vs 88.0% on the connecting ridge. 41 automated tests cover the geometry, terrain, metrics and API.
 
@@ -46,7 +46,7 @@ We used Claude (Anthropic) throughout: it summarized the challenge and rules, pr
 - Libraries: Next.js, React, Tailwind CSS, Observable Plot, FastAPI, numpy (licenses in README)
 
 ## Demo script (≤ 30 seconds)
-1. **0–5 s** — Sky view at the south pole: "At the Moon's south pole the Sun barely clears the horizon. One ridge decides whether a lander has power."
+1. **0–5 s** — Lander view at the south pole, press Play: "At the Moon's south pole the Sun barely clears the horizon. One ridge decides whether a lander has power."
 2. **5–14 s** — Click Connecting Ridge C1 on the map, Dec 1 2026: "Here, the Sun stays up the whole mission… but Earth is hidden for 12 days."
 3. **14–21 s** — Add it to the comparison, click the Malapert Massif region, add it: "Another candidate site, same dates — a completely different answer."
 4. **21–27 s** — Scan the next 12 months: "Delayed? Find the best landing day in seconds."

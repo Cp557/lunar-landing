@@ -2,6 +2,7 @@
 
 import { PauseIcon, PlayIcon, Refresh01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -11,11 +12,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { COLORS } from "../lib/colors";
 import { formatDuration, formatUtc, horizonAt } from "../lib/format";
-import type { Scenario } from "../lib/types";
+import type { Scenario, Site } from "../lib/types";
 import { LanderView } from "./lander-view";
 import { SkyChart } from "./sky-chart";
 import { SkyDome } from "./sky-dome";
 import { ElevationChart, TimelineChart } from "./timeline-chart";
+
+// three.js is large: load the globe only when its tab is opened, and never on the server.
+const MoonGlobe = dynamic(() => import("./moon-globe"), {
+  ssr: false,
+  loading: () => <p className="text-sm text-muted-foreground">Loading globe…</p>,
+});
 
 const FRAME_MS = 80;
 const FRAMES_PER_MISSION = 150; // about 12 s to play a whole mission
@@ -41,10 +48,19 @@ function Status({ label, color, up, el, extra }: { label: string; color: string;
 }
 
 /** Sky view and timelines with one shared time cursor that can be dragged or played. */
-export function MissionView({ scenario }: { scenario: Scenario }) {
+export function MissionView({
+  scenario,
+  sites,
+  index,
+  setIndex,
+}: {
+  scenario: Scenario;
+  sites: Site[];
+  index: number;
+  setIndex: (update: number | ((i: number) => number)) => void;
+}) {
   const s = scenario.series;
   const last = s.t.length - 1;
-  const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const atEnd = index >= last;
   const isPlaying = playing && !atEnd;
@@ -54,7 +70,7 @@ export function MissionView({ scenario }: { scenario: Scenario }) {
     const step = Math.max(1, Math.ceil(last / FRAMES_PER_MISSION));
     const timer = setInterval(() => setIndex((i) => Math.min(i + step, last)), FRAME_MS);
     return () => clearInterval(timer);
-  }, [isPlaying, last]);
+  }, [isPlaying, last, setIndex]);
 
   const t = s.t[index];
   const sunUp = s.sun_el[index] > horizonAt(scenario, s.sun_az[index]);
@@ -70,8 +86,8 @@ export function MissionView({ scenario }: { scenario: Scenario }) {
             are above it. Drag the slider or press play to move through the mission; switch views below.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-3">
-          <div className="flex items-center gap-3">
+        <CardContent className="grid min-w-0 gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <Button
               variant="outline"
               size="sm"
@@ -113,10 +129,19 @@ export function MissionView({ scenario }: { scenario: Scenario }) {
             </span>
           </div>
           <Tabs defaultValue="lander">
-            <TabsList>
-              <TabsTrigger value="lander">Lander view</TabsTrigger>
-              <TabsTrigger value="panorama">360° chart</TabsTrigger>
-              <TabsTrigger value="dome">Sky map</TabsTrigger>
+            <TabsList className="w-full sm:w-fit">
+              <TabsTrigger value="lander" className="px-2 text-xs sm:px-3 sm:text-sm">
+                Lander view
+              </TabsTrigger>
+              <TabsTrigger value="panorama" className="px-2 text-xs sm:px-3 sm:text-sm">
+                360° chart
+              </TabsTrigger>
+              <TabsTrigger value="dome" className="px-2 text-xs sm:px-3 sm:text-sm">
+                Sky map
+              </TabsTrigger>
+              <TabsTrigger value="globe" className="px-2 text-xs sm:px-3 sm:text-sm">
+                Globe
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="lander" className="pt-2">
               <LanderView scenario={scenario} index={index} />
@@ -141,6 +166,13 @@ export function MissionView({ scenario }: { scenario: Scenario }) {
             </TabsContent>
             <TabsContent value="dome" className="pt-2">
               <SkyDome scenario={scenario} index={index} />
+            </TabsContent>
+            <TabsContent value="globe" className="pt-2">
+              <MoonGlobe
+                sites={sites}
+                site={scenario.site}
+                subsolar={{ lat: s.subsolar_lat[index], lon: s.subsolar_lon[index] }}
+              />
             </TabsContent>
           </Tabs>
         </CardContent>

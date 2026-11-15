@@ -25,6 +25,7 @@ MAX_RANGE_M = 300_000.0
 NEAR_FIELD_M = 15_000.0  # range covered by the finest map when one is available
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 COARSE_MAP_PATH = DATA_DIR / "terrain" / "ldem_75s_240m.npz"
+NEAR_MAP_PATH = DATA_DIR / "terrain" / "ldem_845s_120m.npz"
 
 
 @dataclass(frozen=True)
@@ -142,8 +143,18 @@ def load_lola_img(path: Path, scale_m: float) -> PolarMap:
     return PolarMap(np.memmap(path, dtype="<i2", mode="r", shape=(n, n)), scale_m)
 
 
+def _load(path: Path) -> PolarMap:
+    d = np.load(path)
+    return PolarMap(d["dn"], float(d["scale_m"]))
+
+
 @cache
 def coarse_map() -> PolarMap:
-    """Bundled 240 m map of 75S-90S used for live (custom-coordinate) horizons."""
-    d = np.load(COARSE_MAP_PATH)
-    return PolarMap(d["dn"], float(d["scale_m"]))
+    """Bundled 240 m map of 75S-90S: far field for live (custom-coordinate) horizons."""
+    return _load(COARSE_MAP_PATH)
+
+
+@cache
+def near_map() -> PolarMap:
+    """Bundled 120 m map to about 84.5S: near field for live horizons when it covers the site."""
+    return _load(NEAR_MAP_PATH)

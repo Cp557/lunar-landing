@@ -48,12 +48,14 @@ All options and recommendations below were proposed by Claude; the team chose to
 7. Side-by-side comparison of 2–3 scenarios.
 8. "How we calculate this" section with validation results and limitations.
 
-**Stretch (in order)**
-1. Best landing dates: metrics for every landing day over the next 12 months at one site.
-2. Clickable south-pole map to pick coordinates.
-3. Solar power estimate (vertical vs horizontal panel).
+**Stretch (in order)** — status Nov 14 night: 1–3 and 5 done; 4 not started.
+1. Best landing dates: metrics for every landing day over the next 12 months at one site. ✅
+2. Clickable south-pole map to pick coordinates. ✅
+3. Solar power estimate (vertical vs horizontal panel). ✅
 4. Deep Space Network station visibility.
-5. 3D view.
+5. 3D view. ✅ (lander view, sky map, 3D globe)
+
+**Added Nov 14 night (team-approved):** mission brief + ratings, hover explanations, CSV download, sunlight/Earth heat maps, live shadows, sharper (120 m) terrain for custom points.
 
 ## Architecture
 

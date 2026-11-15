@@ -78,12 +78,21 @@ export function Method() {
         <h3 className="font-semibold">Limits</h3>
         <ul className="mt-1 list-disc space-y-1 pl-5 text-muted-foreground">
           <li>
-            Terrain detail matters: curated south-pole sites use 20 m near-field maps; custom coordinates use a 240 m map
+            Terrain detail matters: curated south-pole sites use 20 m near-field maps; custom coordinates use 120 m maps near the pole and 240 m farther out,
             and are approximate. Outside 75°S–90°S the Moon is treated as a smooth sphere.
           </li>
           <li>
             &ldquo;Contact&rdquo; means Earth is above the local horizon; it assumes a Deep Space Network station on Earth
             can see the Moon at that time (true most of the time with three stations).
+          </li>
+          <li>
+            The Good/Fair/Poor mission ratings are our rule of thumb (hover the (i) next to &ldquo;Mission brief&rdquo;),
+            not a NASA standard.
+          </li>
+          <li>
+            The map layers (sunlight %, Earth contact %, live shadows) use coarser terrain (240–720 m) and are
+            approximate. The lander view and sky map stretch heights and draw the Sun and Earth larger than life;
+            their positions are exact.
           </li>
           <li>Dates are limited to 2026–2030, the period of the cached ephemeris.</li>
         </ul>

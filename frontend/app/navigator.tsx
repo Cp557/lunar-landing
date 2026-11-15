@@ -52,6 +52,7 @@ export function Navigator() {
   const [sites, setSites] = useState<Site[]>([]);
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
   const [scenario, setScenario] = useState<Scenario | null>(null);
+  const [index, setIndex] = useState(0); // time slider position, shared by the sky views and the map
   const [compare, setCompare] = useState<Scenario[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +62,7 @@ export function Navigator() {
     setError(null);
     try {
       setScenario(await fetchScenario(toQuery(f)));
+      setIndex(0);
       window.history.replaceState(null, "", urlFor(f));
     } catch (e) {
       setError((e as Error).message);
@@ -112,6 +114,7 @@ export function Navigator() {
         <SouthPoleMap
           sites={sites.filter((s) => s.group === "south_pole")}
           current={scenario ? scenario.site : null}
+          subsolar={scenario ? { lat: scenario.series.subsolar_lat[index], lon: scenario.series.subsolar_lon[index] } : null}
           onPickSite={(id) => run({ siteId: id })}
           onPickPoint={(lat, lon) => run({ siteId: CUSTOM, lat: lat.toFixed(4), lon: lon.toFixed(4) })}
         />
@@ -129,7 +132,13 @@ export function Navigator() {
         {scenario && (
           <div className={`space-y-4 transition-opacity ${busy ? "opacity-60" : ""}`}>
             <Results scenario={scenario} />
-            <MissionView key={`${scenario.site.lat},${scenario.site.lon},${scenario.start},${scenario.end}`} scenario={scenario} />
+            <MissionView
+              key={`${scenario.site.lat},${scenario.site.lon},${scenario.start},${scenario.end}`}
+              scenario={scenario}
+              sites={sites}
+              index={index}
+              setIndex={setIndex}
+            />
             <LandingWindowsPanel
               key={`${scenario.site.lat},${scenario.site.lon}`}
               query={queryFor(scenario)}

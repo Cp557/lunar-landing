@@ -5,11 +5,12 @@ from functools import cache
 
 import numpy as np
 
-from lunar.terrain import DATA_DIR, Horizon, coarse_map, smooth_horizon, terrain_horizon
+from lunar.terrain import NEAR_FIELD_M, DATA_DIR, Horizon, coarse_map, near_map, smooth_horizon, terrain_horizon
 
 SITES_PATH = DATA_DIR / "sites.json"
 HORIZONS_PATH = DATA_DIR / "horizons.json"  # built by scripts/build_horizons.py
 LIVE_TERRAIN = "LOLA 240 m (approximate)"
+LIVE_TERRAIN_NEAR = "LOLA 120 m + 240 m (approximate)"
 NO_TERRAIN = "None (smooth sphere)"
 
 
@@ -32,12 +33,14 @@ def horizon_for(lat: float, lon: float, site_id: str | None = None) -> tuple[Hor
     """Best available horizon and a label for the terrain data behind it.
 
     Curated sites use precomputed high-resolution profiles; other south-polar points
-    are computed live from the bundled 240 m map; elsewhere the Moon is a smooth sphere.
+    are computed live from the bundled maps (120 m near field to ~84.5S, 240 m beyond);
+    elsewhere the Moon is a smooth sphere.
     """
     pre = precomputed_horizons().get(site_id or "")
     if pre:
         return Horizon(np.array(pre["elevation_deg"]), pre["site_height_m"], True), pre["terrain"]
-    pmap = coarse_map()
-    if pmap.covers(lat, lon):
-        return terrain_horizon([pmap], lat, lon), LIVE_TERRAIN
-    return smooth_horizon(), NO_TERRAIN
+    near, far = near_map(), coarse_map()
+    if not far.covers(lat, lon):
+        return smooth_horizon(), NO_TERRAIN
+    label = LIVE_TERRAIN_NEAR if near.covers(lat, lon, NEAR_FIELD_M) else LIVE_TERRAIN
+    return terrain_horizon([near, far], lat, lon), label

@@ -100,3 +100,11 @@ def earth_phase(
         np.linalg.norm(to_sun, axis=-1) * np.linalg.norm(to_site, axis=-1)
     )
     return (1 + cos_i) / 2
+
+
+def subsolar_point(times: np.ndarray, eph: Ephemeris | None = None) -> tuple[np.ndarray, np.ndarray]:
+    """Latitude and east longitude (degrees) of the point on the Moon directly under the Sun."""
+    eph = eph or load_ephemeris()
+    sun, _ = eph.vectors(times)
+    lat = np.degrees(np.arcsin(sun[:, 2] / np.linalg.norm(sun, axis=-1)))
+    return lat, np.degrees(np.arctan2(sun[:, 1], sun[:, 0]))
