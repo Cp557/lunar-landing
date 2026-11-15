@@ -58,6 +58,7 @@ Tests: `cd backend && uv run pytest -q`
 - LRO LOLA Gridded Data Records (polar stereographic DEMs LDEM_75S_120M, LDEM_85S_20M), NASA GSFC / PDS Geosciences Node — https://imbrium.mit.edu/DATA/LOLA_GDR/POLAR/
 - LOLA team, `DSMAP_POLAR.CAT` projection definition — https://imbrium.mit.edu/CATALOG/DSMAP_POLAR.CAT
 - Site coordinates: cited per site in `backend/data/sites.json` (shown in the app)
+- Site icon: "Lander Galaxy" by SVG Repo, CC0 — https://www.svgrepo.com/svg/275140/lander-galaxy
 - Tools also listed by the challenge: [Quickmap](https://quickmap.lroc.asu.edu/), [Moon Trek](https://trek.nasa.gov/moon/)
 
 Libraries: Next.js (MIT), React (MIT), Tailwind CSS (MIT), Observable Plot (ISC), Geist font (SIL OFL 1.1), FastAPI (MIT), numpy (BSD-3-Clause), truststore (MIT, data scripts only), pytest (MIT, tests only).

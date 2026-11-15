@@ -7,12 +7,13 @@ Canonical reference for how this repo is built and run. Update it whenever archi
 ```
 vercel.json        Vercel Services config + public routing
 frontend/          Next.js 16 app (App Router, TypeScript, Tailwind v4, Observable Plot)
-  app/page.tsx         Page shell (header, method section, footer); app/icon.svg is the team logo
+  app/page.tsx         Page shell (header, method section, footer)
+  app/layout.tsx       Fonts (Geist), metadata, favicon (/lander.svg)
   app/navigator.tsx    Client component: loads sites, runs scenarios, lays out results, syncs the URL
   app/components/      Scenario form, south-pole map, results, sky chart, timelines, comparison, best dates, method
   public/south-pole-map.png  Shaded relief 80°S–90°S (built by backend/scripts/build_basemap.py)
   app/lib/             API client + types, formatting helpers, chart colors
-  public/              Static assets (logo)
+  public/lander.svg    Favicon: "Lander Galaxy" by SVG Repo, CC0 (svgrepo.com/svg/275140)
 backend/           FastAPI app, managed with uv
   main.py              FastAPI `app` (entrypoint `main:app`): routes only
   lunar/               Physics package (pure functions, no I/O except loading data/)

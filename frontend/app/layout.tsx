@@ -13,9 +13,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lunar Landing Site Navigator · Wise Tortoise",
+  title: "Lunar Landing Site Navigator",
   description:
     "If we land here, on this date, how long will we have sunlight and contact with Earth? NASA Space Apps 2026.",
+  icons: { icon: "/lander.svg" }, // "Lander Galaxy" by SVG Repo, CC0
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
