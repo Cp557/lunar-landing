@@ -71,7 +71,7 @@ The browser calls the backend on the same origin (`fetch("/api/...")`), so there
 
 ### Sun and Earth positions (`lunar/ephemeris.py`)
 - `data/ephemeris.npz` stores, every 30 minutes, the sub-solar and sub-Earth points on the Moon (Horizons quantities 15 and 14, observer = Earth geocenter, target = Moon, frame MOON_ME) and the Sun–Moon and Earth–Moon distances (quantities 19, 20).
-- These give Sun and Earth vectors from the Moon's center. They are interpolated linearly in time; subtracting the site position gives the topocentric direction (this handles Earth's ~0.26° parallax exactly). `sky_track(lat, lon, times, height_m)` returns azimuth, elevation and distance for both bodies.
+- These give Sun and Earth vectors from the Moon's center. They are interpolated linearly in time; subtracting the site position gives the topocentric direction (this handles Earth's ~0.26° parallax exactly). `sky_track(lat, lon, times, height_m)` returns azimuth, elevation and distance for both bodies. `earth_phase(...)` returns Earth's illuminated fraction seen from the site, (1 + cos i)/2 with i the Sun–Earth–site angle (tested: 0 when the Sun is behind Earth, 1 when it is behind the Moon).
 - Times outside the table raise `ValueError`.
 - **Validation** (`tests/test_ephemeris.py`): against 250 Horizons topocentric "airless apparent" positions (5 sites × Sun/Earth × 25 times, off the table grid), worst-case error is 0.0002° (Sun) and 0.006° (Earth; mostly aberration, which the model omits). Tolerance: 0.05°.
 
@@ -101,7 +101,12 @@ The browser calls the backend on the same origin (`fetch("/api/...")`), so there
 
 - **Shareable URLs:** after each successful evaluation the page URL is replaced with `?site=<id>` or `?lat=…&lon=…`, plus `start=YYYY-MM-DDTHH:mm` (UTC) and `days`. On load these parameters prefill the form; missing ones fall back to the defaults (first south-pole site, 2026-12-01 00:00 UTC, 14 days).
 - **South-pole map:** `south-pole-map.png` is 848 × 848 px, polar stereographic centered on the pole, half-width 305,280 m (≈80°S at the edge midpoints), image up = 0°E (toward Earth), 90°E to the right. The constants in `components/south-pole-map.tsx` must match `scripts/build_basemap.py`. Clicking a dot selects a curated site; clicking elsewhere evaluates that point as custom coordinates.
-- **Mission player** (`components/mission-view.tsx`): a time slider plus Play/Pause over the scenario samples (about 12 s per mission, 80 ms frames). The sky chart marks the Sun and Earth at the selected sample; both timelines draw a white cursor at that time; a status line shows each body's elevation, visibility and visible disk. It remounts (resets to landing time) whenever the scenario changes.
+- **Mission player** (`components/mission-view.tsx`): a time slider plus Play/Pause over the scenario samples (about 12 s per mission, 80 ms frames). The sky chart marks the Sun and Earth at the selected sample; the timeline and elevation chart draw a white cursor at that time; a status line shows each body's elevation, visibility, visible Sun disk and Earth phase. It remounts (resets to landing time) whenever the scenario changes.
+- **Charts are built once per scenario.** `PlotFigure` rebuilds a Plot chart only when its `render` callback changes (new scenario) or its width changes; per-time marks (markers, cursor) are drawn by an `overlay` callback into a `<g data-overlay>` using `plot.scale("x"|"y").apply`, so dragging the slider never rebuilds thousands of marks. Charts must not use Plot legends (that would wrap the SVG in a `<figure>`); legends are HTML.
+- **Timeline + elevation chart** share `MARGIN` and an x axis in "days after landing", so their cursors line up.
+- **Wording:** "Sunlight" (Sun above the terrain horizon) and "Earth contact" (Earth above it), "Longest darkness", "Longest blackout", "Both at once" — used the same way everywhere; one-line explanations live in `app/lib/glossary.ts` (shown via `components/info-tip.tsx`).
+- **Mission brief** (from the API, `lunar/brief.py`): a plain-language summary sentence plus Good/Fair/Poor ratings for power and comms. Rule (ours, not NASA's): good = ≥70% of the mission with no gap over 3 days; fair = ≥40% with no gap over 7 days; else poor. Tested in `tests/test_brief.py`.
+- **CSV download** (`app/lib/csv.ts`): the scenario timeline, one row per sample (UTC time, Sun/Earth azimuth, elevation, terrain horizon at that azimuth, visibility flags, Sun disk %, Earth lit %).
 - Charts are Observable Plot SVGs re-rendered on container resize (`components/plot-figure.tsx`), each with an `aria-label`.
 
 ## Invariants
@@ -122,7 +127,7 @@ The browser calls the backend on the same origin (`fetch("/api/...")`), so there
 
 `/api/scenario` query: `site` (curated id) **or** `lat` + `lon` (degrees, east-positive; lon normalized to −180..180); `start` (ISO 8601, naive = UTC; default: current hour); `days` (0 < days ≤ 365, default 14). The window must fit in the ephemeris coverage, else 422; unknown site → 404.
 
-Response: `site {id, name, lat, lon, terrain}`, `start`, `end`, `step_seconds` (unix seconds), `lander_height_m`, `site_height_m`, `horizon {azimuth_deg[720], elevation_deg[720]}`, `series {t, sun_az, sun_el, sun_disk, earth_az, earth_el, earth_disk}`, `intervals {sun, earth}` (visible `[start, end]` spans), `metrics {sun, earth, both_percent, sun_elevation_at_start_deg, earth_elevation_at_start_deg, solar_w_m2}`.
+Response: `site {id, name, lat, lon, terrain}`, `start`, `end`, `step_seconds` (unix seconds), `lander_height_m`, `site_height_m`, `horizon {azimuth_deg[720], elevation_deg[720]}`, `series {t, sun_az, sun_el, sun_disk, earth_az, earth_el, earth_disk, earth_lit}`, `intervals {sun, earth}` (visible `[start, end]` spans), `metrics {sun, earth, both_percent, sun_elevation_at_start_deg, earth_elevation_at_start_deg, solar_w_m2}`, `brief {summary, power {rating, reason}, comms {rating, reason}, rule}`.
 
 `/api/landing-windows` query: same site/`start` parameters, `days` (1–60, default 14), `count` (1–366, default 365; trimmed so the last mission ends inside the ephemeris coverage). Response: `site`, `days`, `windows[]` (see Landing windows above).
 

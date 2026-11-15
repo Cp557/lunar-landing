@@ -34,9 +34,9 @@ export function Method() {
           </p>
         </div>
         <div className="rounded-3xl bg-muted/50 p-4">
-          <h3 className="font-semibold">3. Is it sunlit? Can we talk to Earth?</h3>
+          <h3 className="font-semibold">3. Sunlight and Earth contact</h3>
           <p className="mt-1 text-muted-foreground">
-            The site is <b>sunlit</b> when the Sun&apos;s center is above the terrain in its direction, and has{" "}
+            The lander has <b>sunlight</b> when the Sun&apos;s center is above the terrain in its direction, and{" "}
             <b>Earth contact</b> when Earth&apos;s center is. We also report how much of the Sun&apos;s disk shows. Rise
             and set times are interpolated between 10-minute samples. Sunlight on a panel is the solar constant (1361
             W/m² at 1 AU) scaled by the Sun&apos;s distance and visible disk, times cos(elevation) for a vertical panel

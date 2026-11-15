@@ -33,11 +33,11 @@ const ROWS: Row[] = [
           : formatDuration(s.metrics.sun.hours_until_change),
     higherIsBetter: true,
   },
-  { label: "Sunlit", score: (s) => s.metrics.sun.visible_percent, text: (s) => formatPercent(s.metrics.sun.visible_percent), higherIsBetter: true },
-  { label: "Longest dark", score: (s) => s.metrics.sun.longest_hidden_hours, text: (s) => formatDuration(s.metrics.sun.longest_hidden_hours), higherIsBetter: false },
-  { label: "Earth in view", score: (s) => s.metrics.earth.visible_percent, text: (s) => formatPercent(s.metrics.earth.visible_percent), higherIsBetter: true },
+  { label: "Sunlight", score: (s) => s.metrics.sun.visible_percent, text: (s) => formatPercent(s.metrics.sun.visible_percent), higherIsBetter: true },
+  { label: "Longest darkness", score: (s) => s.metrics.sun.longest_hidden_hours, text: (s) => formatDuration(s.metrics.sun.longest_hidden_hours), higherIsBetter: false },
+  { label: "Earth contact", score: (s) => s.metrics.earth.visible_percent, text: (s) => formatPercent(s.metrics.earth.visible_percent), higherIsBetter: true },
   { label: "Longest blackout", score: (s) => s.metrics.earth.longest_hidden_hours, text: (s) => formatDuration(s.metrics.earth.longest_hidden_hours), higherIsBetter: false },
-  { label: "Sun + Earth", score: (s) => s.metrics.both_percent, text: (s) => formatPercent(s.metrics.both_percent), higherIsBetter: true },
+  { label: "Both at once", score: (s) => s.metrics.both_percent, text: (s) => formatPercent(s.metrics.both_percent), higherIsBetter: true },
 ];
 
 /** Side-by-side metrics for saved scenarios; the best value in each row is highlighted. */

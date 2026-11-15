@@ -83,3 +83,20 @@ def sky_track(
         earth_el=earth_el,
         earth_km=np.linalg.norm(to_earth, axis=-1),
     )
+
+
+def earth_phase(
+    lat: float, lon: float, times: np.ndarray, height_m: float = 0.0, eph: Ephemeris | None = None
+) -> np.ndarray:
+    """Illuminated fraction of Earth's disk seen from a site (0 = new Earth, 1 = full).
+
+    Uses the phase angle at Earth between the Sun and the observer: (1 + cos i) / 2.
+    """
+    eph = eph or load_ephemeris()
+    sun, earth = eph.vectors(times)
+    site = site_position_km(lat, lon, height_m)
+    to_sun, to_site = sun - earth, site - earth
+    cos_i = np.sum(to_sun * to_site, axis=-1) / (
+        np.linalg.norm(to_sun, axis=-1) * np.linalg.norm(to_site, axis=-1)
+    )
+    return (1 + cos_i) / 2

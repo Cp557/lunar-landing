@@ -2,6 +2,8 @@
 
 import numpy as np
 
+from lunar.brief import mission_brief
+from lunar.ephemeris import earth_phase
 from lunar.metrics import body_metrics, both_percent, longest_run, visible_intervals
 from lunar.terrain import AZIMUTHS_DEG, LANDER_HEIGHT_M, Horizon
 from lunar.visibility import solar_irradiance_w_m2, visibility
@@ -26,6 +28,18 @@ def scenario(lat: float, lon: float, horizon: Horizon, start: float, days: float
     t = time_grid(start, days)
     sun, earth = visibility(lat, lon, t, horizon, LANDER_HEIGHT_M)
     vertical, horizontal = solar_irradiance_w_m2(sun)
+    earth_lit = earth_phase(lat, lon, t, horizon.site_height_m + LANDER_HEIGHT_M)
+    metrics = {
+        "sun": body_metrics(t, sun.margin_deg, sun.disk),
+        "earth": body_metrics(t, earth.margin_deg, earth.disk),
+        "both_percent": both_percent(t, sun.margin_deg, earth.margin_deg),
+        "sun_elevation_at_start_deg": float(sun.el_deg[0]),
+        "earth_elevation_at_start_deg": float(earth.el_deg[0]),
+        "solar_w_m2": {
+            "vertical_avg": float(vertical.mean()),
+            "horizontal_avg": float(horizontal.mean()),
+        },
+    }
     return {
         "start": float(t[0]),
         "end": float(t[-1]),
@@ -41,22 +55,14 @@ def scenario(lat: float, lon: float, horizon: Horizon, start: float, days: float
             "earth_az": rounded(earth.az_deg),
             "earth_el": rounded(earth.el_deg),
             "earth_disk": rounded(earth.disk),
+            "earth_lit": rounded(earth_lit),
         },
         "intervals": {
             "sun": visible_intervals(t, sun.margin_deg),
             "earth": visible_intervals(t, earth.margin_deg),
         },
-        "metrics": {
-            "sun": body_metrics(t, sun.margin_deg, sun.disk),
-            "earth": body_metrics(t, earth.margin_deg, earth.disk),
-            "both_percent": both_percent(t, sun.margin_deg, earth.margin_deg),
-            "sun_elevation_at_start_deg": float(sun.el_deg[0]),
-            "earth_elevation_at_start_deg": float(earth.el_deg[0]),
-            "solar_w_m2": {
-                "vertical_avg": float(vertical.mean()),
-                "horizontal_avg": float(horizontal.mean()),
-            },
-        },
+        "metrics": metrics,
+        "brief": mission_brief(metrics),
     }
 
 

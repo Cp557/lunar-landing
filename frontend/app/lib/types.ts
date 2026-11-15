@@ -39,6 +39,7 @@ export type Scenario = {
     earth_az: number[];
     earth_el: number[];
     earth_disk: number[];
+    earth_lit: number[]; // illuminated fraction of Earth's disk (0 = new Earth, 1 = full)
   };
   intervals: { sun: Interval[]; earth: Interval[] };
   metrics: {
@@ -49,6 +50,16 @@ export type Scenario = {
     earth_elevation_at_start_deg: number;
     solar_w_m2: { vertical_avg: number; horizontal_avg: number };
   };
+  brief: Brief;
+};
+
+export type Rating = "good" | "fair" | "poor";
+
+export type Brief = {
+  summary: string;
+  power: { rating: Rating; reason: string };
+  comms: { rating: Rating; reason: string };
+  rule: string;
 };
 
 export type LandingWindow = {
