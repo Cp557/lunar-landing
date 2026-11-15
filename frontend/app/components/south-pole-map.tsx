@@ -3,8 +3,12 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
+import { Maximize01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 import { formatLatLon } from "../lib/format";
 import { ShadowLayer } from "./shadow-layer";
@@ -58,19 +62,16 @@ const LAYERS: { id: Layer; label: string; image?: string; gradient?: string }[] 
   { id: "shadows", label: "Shadows now" },
 ];
 
-export function SouthPoleMap({
-  sites,
-  current,
-  subsolar,
-  onPickSite,
-  onPickPoint,
-}: {
+type MapProps = {
   sites: Site[];
   current: { lat: number; lon: number } | null;
   subsolar: { lat: number; lon: number } | null;
   onPickSite: (id: string) => void;
   onPickPoint: (lat: number, lon: number) => void;
-}) {
+};
+
+/** The interactive map with its layer switch, legends and hover readout. */
+function MapPanel({ sites, current, subsolar, onPickSite, onPickPoint, large = false }: MapProps & { large?: boolean }) {
   const [hover, setHover] = useState<{ lat: number; lon: number; fx: number; fy: number } | null>(null);
   const [layer, setLayer] = useState<Layer>("terrain");
   const [heat, setHeat] = useState<Heatmap | null>(null);
@@ -101,17 +102,16 @@ export function SouthPoleMap({
   const here = current ? toMap(current.lat, current.lon) : null;
 
   return (
-    <Card size="sm">
-      <CardHeader className="flex items-baseline justify-between gap-2">
-        <CardTitle>South pole map</CardTitle>
+    <div className={large ? "grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]" : "grid gap-2"}>
+      <div className="grid min-w-0 content-start gap-1">
         <span className="text-xs text-muted-foreground tabular-nums">
-          {hover ? formatLatLon(hover.lat, hover.lon) : "80°S–90°S"}
+          {hover ? formatLatLon(hover.lat, hover.lon) : "80°S–90°S · hover for coordinates"}
           {heatValue !== null && ` · ${heatValue}%`}
         </span>
-      </CardHeader>
-      <CardContent className="grid gap-2">
         <div
-          className="relative aspect-square w-full cursor-crosshair overflow-hidden rounded-3xl"
+          className="relative mx-auto aspect-square w-full cursor-crosshair overflow-hidden rounded-3xl"
+          // In the enlarged view the square must also fit the window's height.
+          style={large ? { maxWidth: "min(100%, 76vh)" } : undefined}
           onClick={(e) => {
             const { lat, lon } = fraction(e);
             onPickPoint(lat, lon);
@@ -146,18 +146,20 @@ export function SouthPoleMap({
                 e.stopPropagation();
                 onPickSite(site.id);
               }}
-              className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-background transition-transform hover:scale-150"
+              className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-background transition-transform hover:scale-150 ${large ? "size-4" : "size-3"}`}
               style={{ left: `${p[0] * 100}%`, top: `${p[1] * 100}%`, background: KIND_COLOR[site.kind] ?? "white" }}
             />
           ))}
           {here && (
             <span
               aria-hidden
-              className="pointer-events-none absolute size-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white"
+              className={`pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white ${large ? "size-8" : "size-6"}`}
               style={{ left: `${here[0] * 100}%`, top: `${here[1] * 100}%` }}
             />
           )}
         </div>
+      </div>
+      <div className="grid content-start gap-2">
         <div className="flex flex-wrap gap-1" role="group" aria-label="Map layer">
           {LAYERS.map((l) => (
             <Button key={l.id} variant={layer === l.id ? "secondary" : "ghost"} size="xs" onClick={() => setLayer(l.id)} aria-pressed={layer === l.id}>
@@ -193,6 +195,48 @@ export function SouthPoleMap({
             </li>
           ))}
         </ul>
+      </div>
+    </div>
+  );
+}
+
+/** South-pole map card, with an "Enlarge" button that opens the same map in a large window. */
+export function SouthPoleMap(props: MapProps) {
+  const [open, setOpen] = useState(false);
+  // Picking from the enlarged map closes it so the updated results are visible.
+  const pickSite = (id: string) => {
+    props.onPickSite(id);
+    setOpen(false);
+  };
+  const pickPoint = (lat: number, lon: number) => {
+    props.onPickPoint(lat, lon);
+    setOpen(false);
+  };
+
+  return (
+    <Card size="sm">
+      <CardHeader className="flex items-center justify-between gap-2">
+        <CardTitle>South pole map</CardTitle>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button variant="ghost" size="xs">
+              <HugeiconsIcon icon={Maximize01Icon} strokeWidth={2} data-icon="inline-start" />
+              Enlarge
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-h-[96vh] overflow-y-auto sm:max-w-[min(96vw,72rem)]">
+            <DialogHeader>
+              <DialogTitle>South pole map</DialogTitle>
+              <DialogDescription>
+                80°S to the pole, from NASA LOLA elevation data. Click a site or any point to evaluate it.
+              </DialogDescription>
+            </DialogHeader>
+            <MapPanel {...props} onPickSite={pickSite} onPickPoint={pickPoint} large />
+          </DialogContent>
+        </Dialog>
+      </CardHeader>
+      <CardContent>
+        <MapPanel {...props} />
       </CardContent>
     </Card>
   );

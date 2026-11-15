@@ -97,7 +97,7 @@ export function Navigator() {
   const inCompare = scenario !== null && compare.includes(scenario);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+    <div className="grid gap-4 lg:grid-cols-[340px_1fr] xl:grid-cols-[400px_1fr]">
       <aside className="space-y-3">
         <ScenarioForm sites={sites} form={form} onChange={setForm} onSubmit={() => evaluate(form)} busy={busy} />
         {scenario && (
