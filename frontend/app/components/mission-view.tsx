@@ -13,7 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { COLORS } from "../lib/colors";
 import { formatUtc, horizonAt } from "../lib/format";
 import type { Scenario, Site } from "../lib/types";
-import { LanderView } from "./lander-view";
 import { SkyChart } from "./sky-chart";
 import { SkyDome } from "./sky-dome";
 import { ElevationChart, TimelineChart } from "./timeline-chart";
@@ -157,11 +156,8 @@ export function MissionView({
               ]}
             />
           </div>
-          <Tabs defaultValue="lander">
+          <Tabs defaultValue="panorama">
             <TabsList className="w-full sm:w-fit">
-              <TabsTrigger value="lander" className="px-2 text-xs sm:px-3 sm:text-sm">
-                Lander view
-              </TabsTrigger>
               <TabsTrigger value="panorama" className="px-2 text-xs sm:px-3 sm:text-sm">
                 360° chart
               </TabsTrigger>
@@ -172,9 +168,6 @@ export function MissionView({
                 Globe
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="lander" className="pt-2">
-              <LanderView scenario={scenario} index={index} />
-            </TabsContent>
             <TabsContent value="panorama" className="grid gap-2 pt-2">
               <SkyChart scenario={scenario} index={index} />
               <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">

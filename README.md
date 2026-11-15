@@ -20,7 +20,7 @@ Pick a landing site (29 curated sites with sources, including NASA's 9 Artemis I
 - **Sky view:** the real terrain horizon with the Sun's and Earth's paths over the mission.
 - **Timeline:** when the site is sunlit and when Earth is visible, and how far above the horizon each is.
 - **Mission brief:** one plain-language sentence plus Good/Fair/Poor ratings for power and communications.
-- **Mission playback:** scrub or play through the mission and watch the Sun circle the horizon and Earth rise and set, in four views: a first-person **lander view** (with Earth's real phase), a **360° chart**, a round **sky map**, and a **3D Moon globe** lit by the Sun at that moment.
+- **Mission playback:** scrub or play through the mission and watch the Sun circle the horizon and Earth rise and set, in three views: a **360° chart** of the skyline with the Sun's and Earth's paths, a round **sky map**, and a **3D Moon globe** lit by the Sun at that moment.
 - **South-pole map layers:** sunlight % and Earth-contact % heat maps (2026–2030) and **live terrain shadows** that move with the time slider.
 - **Help and export:** hover explanations for every term and a CSV download of the timeline.
 - **Comparison:** up to three scenarios side by side.

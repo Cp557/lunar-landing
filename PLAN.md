@@ -53,7 +53,7 @@ All options and recommendations below were proposed by Claude; the team chose to
 2. Clickable south-pole map to pick coordinates. ✅
 3. Solar power estimate (vertical vs horizontal panel). ✅
 4. Deep Space Network station visibility.
-5. 3D view. ✅ (lander view, sky map, 3D globe)
+5. 3D view. ✅ (sky map, 3D globe; a lander view was built, then cut on Nov 15)
 
 **Added Nov 14 night (team-approved):** mission brief + ratings, hover explanations, CSV download, sunlight/Earth heat maps, live shadows, sharper (120 m) terrain for custom points.
 

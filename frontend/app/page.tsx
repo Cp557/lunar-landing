@@ -1,22 +1,12 @@
-import { Moon02Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-
 import { Method } from "./components/method";
 import { Navigator } from "./navigator";
 
 export default function Home() {
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 space-y-6 px-4 py-8 sm:px-6">
-      <header className="flex items-start gap-3">
-        <span className="mt-1 flex size-10 shrink-0 items-center justify-center rounded-full bg-card ring-1 ring-foreground/10">
-          <HugeiconsIcon icon={Moon02Icon} strokeWidth={2} className="size-5 text-sun" />
-        </span>
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Lunar Landing Site Navigator</h1>
-          <p className="text-muted-foreground">
-            If we land here, on this date, how long will we have sunlight and contact with Earth?
-          </p>
-        </div>
+      <header>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Lunar Landing Site Navigator</h1>
+        <p className="text-muted-foreground">If we land here, on this date, how long will we have sunlight and contact with Earth?</p>
       </header>
       <Navigator />
       <Method />
