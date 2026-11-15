@@ -34,7 +34,7 @@ export function toQuery(f: FormState): ScenarioQuery {
 
 function Field({ id, label, children }: { id: string; label: string; children: React.ReactNode }) {
   return (
-    <div className="grid gap-1.5">
+    <div className="grid min-w-0 gap-1.5">
       <Label htmlFor={id} className="text-muted-foreground">
         {label}
       </Label>
@@ -71,8 +71,9 @@ export function ScenarioForm({
         >
           <Field id="site" label="Landing site">
             <Select value={form.siteId || undefined} onValueChange={(siteId) => set({ siteId })}>
-              <SelectTrigger id="site" className="w-full">
-                <SelectValue placeholder="Choose a site" />
+              <SelectTrigger id="site" className="w-full min-w-0">
+                {/* !block + truncate: long names end in "…" instead of widening the form */}
+                <SelectValue placeholder="Choose a site" className="!block truncate" />
               </SelectTrigger>
               <SelectContent>
                 {GROUPS.map(([group, label]) => (
@@ -115,7 +116,7 @@ export function ScenarioForm({
               </p>
             </div>
           )}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
             <Field id="start" label="Landing (UTC)">
               <Input
                 id="start"
