@@ -10,6 +10,12 @@ Team Wise Tortoise's project for the [NASA Space Apps Challenge 2026: Lunar Land
 
 **Live app:** https://lunar-landing-delta.vercel.app
 
+![The app's first screen: the south-pole map with live terrain shadows, the landing form and the answer](docs/screenshots/hero.jpg)
+
+**Try it in 30 seconds:** click a site on the map → choose a landing date → press **Play** under the map to watch the shadows sweep around the pole. Scroll down for the mission timeline, the 3D south pole and the best landing dates over the next year.
+
+**Validated:** Sun and Earth positions match NASA JPL Horizons to 0.0002° and 0.006° (250 test cases), and average sunlight on Shackleton's rim is 80.0% vs 81.0% in a published study (Gläser et al. 2018). See [How it works](#how-it-works).
+
 ## What it does
 
 Pick a landing site (29 curated sites with sources, including NASA's 9 Artemis III candidate regions; a click on the south-pole map; or typed coordinates), a landing date and a mission length. The app answers:
@@ -18,15 +24,29 @@ Pick a landing site (29 curated sites with sources, including NASA's 9 Artemis I
 - **Mission summary:** % of the mission sunlit, % with Earth contact, % with both.
 - **Risk:** the longest dark period (battery/thermal survival) and the longest communication blackout.
 - **Sky view:** the real terrain horizon with the Sun's and Earth's paths over the mission.
-- **Timeline:** when the site is sunlit and when Earth is visible, and how far above the horizon each is.
+- **Mission timeline:** one picture of when the lander has sunlight, Earth contact, or both, with how long each stretch lasts.
 - **Mission brief:** one plain-language sentence plus Good/Fair/Poor ratings for power and communications.
 - **Mission playback:** scrub or play through the mission and watch the Sun circle the horizon and Earth rise and set, with one Play button: live terrain **shadows sweep across the south-pole map**, a **360° skyline** chart shows the Sun's and Earth's paths, a **3D south pole** (LOLA relief lit by the real Sun with the same ray-marched shadows) and a **3D Moon globe** (4k NASA texture with relief, Earth in its real direction and phase) follow the same time.
 - **South-pole map layers:** sunlight % and Earth-contact % heat maps (2026–2030) and **live terrain shadows** that move with the time slider.
 - **Help and export:** hover explanations for every term and a CSV download of the timeline.
 - **Comparison:** up to three scenarios side by side.
-- **Best landing dates:** the same site and mission length for every landing day over the next year.
+- **Best landing dates:** the same site and mission length for every landing day over the next year, loaded automatically, with the top 5 dates one click away.
 - **Solar power:** average sunlight on a vertical panel turned to the Sun vs a flat panel.
 - **Shareable links:** the URL always reproduces the current scenario.
+
+## Screenshots
+
+**3D south pole:** LOLA terrain lit by the Sun at the slider time, with the same terrain shadows as the map.
+
+![3D south pole lit by the Sun, with the mission player and live Sun and Earth readouts](docs/screenshots/south-pole-3d.jpg)
+
+**Mission timeline:** when the lander has sunlight, Earth contact, or both.
+
+![Mission timeline with sunlight, Earth contact and both, and how long each stretch lasts](docs/screenshots/timeline.jpg)
+
+**Best landing dates:** every landing day over the next year, with the top 5.
+
+![Best landing dates chart for the next 12 months and the top 5 dates](docs/screenshots/best-dates.jpg)
 
 ## How it works
 

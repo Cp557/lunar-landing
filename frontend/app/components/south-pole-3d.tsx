@@ -51,7 +51,9 @@ void main() {
   float hx = heightAt(vMapUv + vec2(texel, 0.0)) - heightAt(vMapUv - vec2(texel, 0.0));
   float hy = heightAt(vMapUv - vec2(0.0, texel)) - heightAt(vMapUv + vec2(0.0, texel));
   vec3 n = normalize(vec3(-hx, -hy, 2.0 * cell / exaggeration));
-  float lit = inShadow(vMapUv) ? 0.0 : 1.0;
+  // One shadow test per heights cell, at its center like the 2D map: testing every pixel inside a
+  // 720 m cell made grazing-Sun self-shadowing flicker into dotted hatching.
+  float lit = inShadow((floor(vMapUv / texel) + 0.5) * texel) ? 0.0 : 1.0;
   float sun = max(dot(n, sunLocal), 0.0);
   vec3 c = vec3(0.64, 0.64, 0.67) * (0.13 + lit * (0.2 + 1.3 * sun)) + vec3(0.0, 0.015, 0.05) * (1.0 - lit);
   gl_FragColor = vec4(c, 1.0);

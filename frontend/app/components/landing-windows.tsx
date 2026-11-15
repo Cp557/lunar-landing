@@ -68,6 +68,7 @@ export function LandingWindowsPanel({ query, onPick }: { query: ScenarioQuery; o
             Plot.pointerX({
               x: "date",
               y: "both_percent",
+              fill: "var(--popover)", // dark box: the tip's text is the chart's muted color
               title: (d) =>
                 `${d.date.toISOString().slice(0, 10)}\nBoth: ${d.both_percent}%\nSunlight: ${d.sun_percent}%\nEarth contact: ${d.earth_percent}%\nClick to load`,
             }),
