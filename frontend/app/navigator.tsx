@@ -1,6 +1,11 @@
 "use client";
 
+import { Add01Icon, Alert02Icon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useEffect, useState } from "react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 import { CompareTable } from "./components/compare";
 import { LandingWindowsPanel } from "./components/landing-windows";
@@ -94,14 +99,15 @@ export function Navigator() {
       <aside className="space-y-3">
         <ScenarioForm sites={sites} form={form} onChange={setForm} onSubmit={() => evaluate(form)} busy={busy} />
         {scenario && (
-          <button
-            type="button"
+          <Button
+            variant="outline"
+            className="w-full"
             disabled={inCompare || compare.length >= MAX_COMPARE}
             onClick={() => setCompare([...compare, scenario])}
-            className="w-full rounded-md border border-line px-4 py-2 text-sm hover:bg-panel disabled:opacity-50"
           >
+            <HugeiconsIcon icon={inCompare ? Tick02Icon : Add01Icon} strokeWidth={2} data-icon="inline-start" />
             {inCompare ? "Added to comparison" : compare.length >= MAX_COMPARE ? "Comparison full (3)" : "Add to comparison"}
-          </button>
+          </Button>
         )}
         <SouthPoleMap
           sites={sites.filter((s) => s.group === "south_pole")}
@@ -112,11 +118,13 @@ export function Navigator() {
       </aside>
       <div className="min-w-0 space-y-4">
         {error && (
-          <p role="alert" className="rounded-lg border border-red-400/50 bg-red-950/40 px-4 py-3 text-sm">
-            {error}
-          </p>
+          <Alert variant="destructive">
+            <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} />
+            <AlertTitle>Couldn&apos;t evaluate this landing</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
-        {!scenario && !error && <p className="text-muted">Loading…</p>}
+        {!scenario && !error && <p className="text-muted-foreground">Loading…</p>}
         {compare.length > 0 && <CompareTable scenarios={compare} onRemove={(i) => setCompare(compare.filter((_, j) => j !== i))} />}
         {scenario && (
           <div className={`space-y-4 transition-opacity ${busy ? "opacity-60" : ""}`}>

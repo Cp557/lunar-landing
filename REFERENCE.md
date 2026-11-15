@@ -6,7 +6,10 @@ Canonical reference for how this repo is built and run. Update it whenever archi
 
 ```
 vercel.json        Vercel Services config + public routing
-frontend/          Next.js 16 app (App Router, TypeScript, Tailwind v4, Observable Plot)
+frontend/          Next.js 16 app (App Router, TypeScript, Tailwind v4, shadcn/ui, Observable Plot)
+  components.json      shadcn config: preset b1VlJD4S (style radix-luma, Outfit font, Hugeicons), base radix
+  components/ui/       shadcn components (generated; edit freely — slider thumb gets the root's aria-label)
+  lib/utils.ts         `cn` class helper (shadcn)
   app/page.tsx         Page shell (header, method section, footer)
   app/layout.tsx       Fonts (Geist), metadata, favicon (/lander.svg)
   app/navigator.tsx    Client component: loads sites, runs scenarios, lays out results, syncs the URL
@@ -93,6 +96,8 @@ The browser calls the backend on the same origin (`fetch("/api/...")`), so there
 29 sites (south pole incl. the 9 NASA Artemis III candidate regions, Apollo and other near-side landings, far side), each with a citation. Artemis III region centers are approximate (means of candidate sites in Wueller et al. 2026, Table A1); NASA published only a map. Coordinates were researched with AI assistance from the cited sources.
 
 ## Frontend behavior
+
+- **Look:** shadcn preset `b1VlJD4S` (Luma style, Outfit font, Hugeicons). Dark-only (`<html class="dark">`) with a custom "lunar night" palette in `app/globals.css`: navy-tinted neutrals and a near-white primary for UI chrome; color is reserved for data (`--sun` #f5b544, `--earth` #4ea8f5, `--both` #7bd389, mirrored in `app/lib/colors.ts` for charts). Use shadcn tokens (`bg-card`, `text-muted-foreground`, `border-border`) rather than raw colors. Add components with `npx shadcn@latest add <name>` from `frontend/`.
 
 - **Shareable URLs:** after each successful evaluation the page URL is replaced with `?site=<id>` or `?lat=…&lon=…`, plus `start=YYYY-MM-DDTHH:mm` (UTC) and `days`. On load these parameters prefill the form; missing ones fall back to the defaults (first south-pole site, 2026-12-01 00:00 UTC, 14 days).
 - **South-pole map:** `south-pole-map.png` is 848 × 848 px, polar stereographic centered on the pole, half-width 305,280 m (≈80°S at the edge midpoints), image up = 0°E (toward Earth), 90°E to the right. The constants in `components/south-pole-map.tsx` must match `scripts/build_basemap.py`. Clicking a dot selects a curated site; clicking elsewhere evaluates that point as custom coordinates.

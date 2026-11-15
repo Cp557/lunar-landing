@@ -1,9 +1,11 @@
-// Chart colors; mirror the CSS variables in globals.css.
+// Chart colors (hex, for Observable Plot). Sun/Earth/Both mirror --sun/--earth/--both in globals.css.
 export const COLORS = {
   sun: "#f5b544",
   earth: "#4ea8f5",
   both: "#7bd389",
-  terrain: "#5b6b84",
-  text: "#e6edf7",
-  muted: "#93a4bf",
+  terrain: "#4b5873",
+  text: "#eef2f8",
+  muted: "#a3adc2",
+  track: "#2a3448", // empty timeline lanes
+  font: "var(--font-sans)",
 };

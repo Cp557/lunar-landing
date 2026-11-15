@@ -1,3 +1,10 @@
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 import { formatDuration, formatPercent, formatUtc } from "../lib/format";
 import type { Scenario } from "../lib/types";
 
@@ -36,48 +43,54 @@ const ROWS: Row[] = [
 /** Side-by-side metrics for saved scenarios; the best value in each row is highlighted. */
 export function CompareTable({ scenarios, onRemove }: { scenarios: Scenario[]; onRemove: (i: number) => void }) {
   return (
-    <section className="rounded-xl border border-line bg-panel p-4">
-      <h2 className="font-semibold">Comparison</h2>
-      <p className="mb-2 text-sm text-muted">Saved scenarios side by side. Green marks the best value in each row.</p>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[480px] text-sm">
-          <thead>
-            <tr className="text-left align-top">
-              <th className="py-2 pr-3 font-normal text-muted">Scenario</th>
+    <Card>
+      <CardHeader>
+        <CardTitle>Comparison</CardTitle>
+        <CardDescription>Saved scenarios side by side. Green marks the best value in each row.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="align-top">Scenario</TableHead>
               {scenarios.map((s, i) => (
-                <th key={i} className="py-2 pr-3">
-                  <div className="font-semibold">{s.site.name}</div>
-                  <div className="font-normal text-muted">
-                    {formatUtc(s.start)} · {formatDuration(missionHours(s))}
+                <TableHead key={i} className="h-auto py-2 align-top whitespace-normal">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-semibold text-foreground">{s.site.name}</div>
+                      <div className="text-xs font-normal">
+                        {formatUtc(s.start)} · {formatDuration(missionHours(s))}
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon-xs" aria-label={`Remove ${s.site.name}`} onClick={() => onRemove(i)}>
+                      <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
+                    </Button>
                   </div>
-                  <button type="button" className="text-xs text-muted underline" onClick={() => onRemove(i)}>
-                    Remove
-                  </button>
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {ROWS.map((row) => {
               const scores = scenarios.map(row.score);
               const best = row.higherIsBetter ? Math.max(...scores) : Math.min(...scores);
               return (
-                <tr key={row.label} className="border-t border-line">
-                  <td className="py-2 pr-3 text-muted">{row.label}</td>
+                <TableRow key={row.label}>
+                  <TableCell className="text-muted-foreground">{row.label}</TableCell>
                   {scenarios.map((s, i) => (
-                    <td
+                    <TableCell
                       key={i}
-                      className={`py-2 pr-3 tabular-nums ${scenarios.length > 1 && scores[i] === best ? "font-semibold text-both" : ""}`}
+                      className={`tabular-nums ${scenarios.length > 1 && scores[i] === best ? "font-semibold text-both" : ""}`}
                     >
                       {row.text(s)}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
+                </TableRow>
               );
             })}
-          </tbody>
-        </table>
-      </div>
-    </section>
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }

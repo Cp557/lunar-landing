@@ -35,7 +35,7 @@ Full details and validation: [REFERENCE.md](REFERENCE.md). Build plan: [PLAN.md]
 
 ## Stack
 
-- **Frontend:** Next.js (App Router, TypeScript, Tailwind, Observable Plot) in `frontend/`
+- **Frontend:** Next.js (App Router, TypeScript, Tailwind, shadcn/ui with the Luma style, Outfit font, Hugeicons, Observable Plot) in `frontend/`
 - **Backend:** FastAPI + numpy (Python, uv) in `backend/`; all physics lives in `backend/lunar/` with a pytest suite
 - **Hosting:** Vercel, one project with two [Services](https://vercel.com/docs/services) defined in `vercel.json`
 
@@ -61,7 +61,7 @@ Tests: `cd backend && uv run pytest -q`
 - Site icon: "Lander Galaxy" by SVG Repo, CC0 — https://www.svgrepo.com/svg/275140/lander-galaxy
 - Tools also listed by the challenge: [Quickmap](https://quickmap.lroc.asu.edu/), [Moon Trek](https://trek.nasa.gov/moon/)
 
-Libraries: Next.js (MIT), React (MIT), Tailwind CSS (MIT), Observable Plot (ISC), Geist font (SIL OFL 1.1), FastAPI (MIT), numpy (BSD-3-Clause), truststore (MIT, data scripts only), pytest (MIT, tests only).
+Libraries: Next.js (MIT), React (MIT), Tailwind CSS (MIT), shadcn/ui (MIT), Radix UI (MIT), Hugeicons free icons (MIT), class-variance-authority (Apache-2.0), cn (MIT), tw-animate-css (MIT), Observable Plot (ISC), Outfit font (SIL OFL 1.1), FastAPI (MIT), numpy (BSD-3-Clause), truststore (MIT, data scripts only), pytest (MIT, tests only).
 
 ## Use of AI
 

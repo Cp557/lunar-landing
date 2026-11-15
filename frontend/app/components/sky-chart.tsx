@@ -41,7 +41,7 @@ export function SkyChart({ scenario, index = 0 }: { scenario: Scenario; index?: 
         width,
         height: Math.max(260, Math.min(380, width * 0.42)),
         marginLeft: 44,
-        style: { background: "transparent", color: COLORS.muted, fontSize: "12px" },
+        style: { background: "transparent", color: COLORS.muted, fontSize: "12px", fontFamily: COLORS.font },
         x: {
           domain: [0, 360],
           ticks: [0, 45, 90, 135, 180, 225, 270, 315, 360],
@@ -68,7 +68,7 @@ export function SkyChart({ scenario, index = 0 }: { scenario: Scenario; index?: 
             x: "az",
             y: "el",
             r: 6,
-            fill: (d: Point & { color: string }) => (d.visible ? d.color : "#0b1d3a"),
+            fill: (d: Point & { color: string }) => (d.visible ? d.color : COLORS.track),
             stroke: "color",
             strokeWidth: 2,
           }),

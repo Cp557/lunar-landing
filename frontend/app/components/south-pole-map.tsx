@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useState } from "react";
 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { formatLatLon } from "../lib/format";
 import type { Site } from "../lib/types";
 
@@ -32,8 +34,17 @@ const KIND_COLOR: Record<string, string> = {
   reference: "var(--sun)",
   candidate: "var(--earth)",
   landed: "var(--both)",
-  planned: "#c4b5fd",
+  planned: "var(--chart-5)",
 };
+
+const LEGEND: [string, string][] = [
+  ["reference", "illumination peak"],
+  ["candidate", "Artemis III region"],
+  ["landed", "landed"],
+  ["planned", "planned"],
+];
+
+const tag = "absolute rounded-full bg-background/75 px-1.5 text-[10px] text-foreground";
 
 export function SouthPoleMap({
   sites,
@@ -58,61 +69,66 @@ export function SouthPoleMap({
   const here = current ? toMap(current.lat, current.lon) : null;
 
   return (
-    <section className="rounded-xl border border-line bg-panel p-3">
-      <div className="flex items-baseline justify-between gap-2 text-sm">
-        <h2 className="font-semibold">South pole map</h2>
-        <span className="text-xs text-muted tabular-nums">{hover ? formatLatLon(hover.lat, hover.lon) : "80°S–90°S"}</span>
-      </div>
-      <div
-        className="relative mt-2 aspect-square w-full cursor-crosshair overflow-hidden rounded-lg"
-        onClick={(e) => {
-          const { lat, lon } = fraction(e);
-          onPickPoint(lat, lon);
-        }}
-        onMouseMove={(e) => setHover(fraction(e))}
-        onMouseLeave={() => setHover(null)}
-      >
-        <Image
-          src="/south-pole-map.png"
-          alt="Shaded relief of the lunar south pole from LOLA elevation data"
-          fill
-          // Served as-is: /_next/image optimization isn't available under Vercel Services.
-          unoptimized
-          className="pointer-events-none select-none"
-          priority
-        />
-        <span className="absolute left-1/2 top-1 -translate-x-1/2 rounded bg-night/70 px-1 text-[10px]">0° · toward Earth ↑</span>
-        <span className="absolute right-1 top-1/2 -translate-y-1/2 rounded bg-night/70 px-1 text-[10px]">90°E</span>
-        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded bg-night/70 px-1 text-[10px]">180°</span>
-        <span className="absolute left-1 top-1/2 -translate-y-1/2 rounded bg-night/70 px-1 text-[10px]">90°W</span>
-        {markers.map(({ site, p }) => (
-          <button
-            key={site.id}
-            type="button"
-            title={site.name}
-            aria-label={`Select ${site.name}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onPickSite(site.id);
-            }}
-            className="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-night hover:scale-150"
-            style={{ left: `${p[0] * 100}%`, top: `${p[1] * 100}%`, background: KIND_COLOR[site.kind] ?? "white" }}
+    <Card size="sm">
+      <CardHeader className="flex items-baseline justify-between gap-2">
+        <CardTitle>South pole map</CardTitle>
+        <span className="text-xs text-muted-foreground tabular-nums">{hover ? formatLatLon(hover.lat, hover.lon) : "80°S–90°S"}</span>
+      </CardHeader>
+      <CardContent className="grid gap-2">
+        <div
+          className="relative aspect-square w-full cursor-crosshair overflow-hidden rounded-3xl"
+          onClick={(e) => {
+            const { lat, lon } = fraction(e);
+            onPickPoint(lat, lon);
+          }}
+          onMouseMove={(e) => setHover(fraction(e))}
+          onMouseLeave={() => setHover(null)}
+        >
+          <Image
+            src="/south-pole-map.png"
+            alt="Shaded relief of the lunar south pole from LOLA elevation data"
+            fill
+            // Served as-is: /_next/image optimization isn't available under Vercel Services.
+            unoptimized
+            className="pointer-events-none select-none"
+            priority
           />
-        ))}
-        {here && (
-          <span
-            aria-hidden
-            className="pointer-events-none absolute h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white"
-            style={{ left: `${here[0] * 100}%`, top: `${here[1] * 100}%` }}
-          />
-        )}
-      </div>
-      <p className="mt-2 text-xs text-muted">
-        Click a dot for a curated site or anywhere for that point (240 m terrain).{" "}
-        <span style={{ color: "var(--sun)" }}>●</span> illumination peak <span style={{ color: "var(--earth)" }}>●</span>{" "}
-        Artemis III region <span style={{ color: "var(--both)" }}>●</span> landed <span style={{ color: "#c4b5fd" }}>●</span>{" "}
-        planned
-      </p>
-    </section>
+          <span className={`${tag} top-1.5 left-1/2 -translate-x-1/2`}>0° · toward Earth ↑</span>
+          <span className={`${tag} top-1/2 right-1.5 -translate-y-1/2`}>90°E</span>
+          <span className={`${tag} bottom-1.5 left-1/2 -translate-x-1/2`}>180°</span>
+          <span className={`${tag} top-1/2 left-1.5 -translate-y-1/2`}>90°W</span>
+          {markers.map(({ site, p }) => (
+            <button
+              key={site.id}
+              type="button"
+              title={site.name}
+              aria-label={`Select ${site.name}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onPickSite(site.id);
+              }}
+              className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-background transition-transform hover:scale-150"
+              style={{ left: `${p[0] * 100}%`, top: `${p[1] * 100}%`, background: KIND_COLOR[site.kind] ?? "white" }}
+            />
+          ))}
+          {here && (
+            <span
+              aria-hidden
+              className="pointer-events-none absolute size-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white"
+              style={{ left: `${here[0] * 100}%`, top: `${here[1] * 100}%` }}
+            />
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground">Click a dot for a curated site, or anywhere for that point (240 m terrain).</p>
+        <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          {LEGEND.map(([kind, label]) => (
+            <li key={kind} className="flex items-center gap-1.5">
+              <span className="inline-block size-2 rounded-full" style={{ background: KIND_COLOR[kind] }} />
+              {label}
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
   );
 }
