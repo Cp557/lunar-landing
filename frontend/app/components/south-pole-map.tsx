@@ -76,7 +76,8 @@ export function SouthPoleMap({
           src="/south-pole-map.png"
           alt="Shaded relief of the lunar south pole from LOLA elevation data"
           fill
-          sizes="(min-width: 1024px) 320px, 100vw"
+          // Served as-is: /_next/image optimization isn't available under Vercel Services.
+          unoptimized
           className="pointer-events-none select-none"
           priority
         />

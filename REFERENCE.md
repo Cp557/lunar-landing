@@ -102,6 +102,7 @@ The browser calls the backend on the same origin (`fetch("/api/...")`), so there
 - **FastAPI routes must include the `/api` prefix.** Rewrites keep the original path, so `/api/health` reaches FastAPI as `/api/health`.
 - **Next.js must not define its own `app/api/*` routes.** They would be shadowed by the backend rewrite.
 - The `/api` rewrite must stay before the frontend catch-all.
+- **Raster images must use `next/image` with `unoptimized`.** On this Services deployment `/_next/image` returns 404 in production (it works locally). SVGs are served as-is anyway.
 
 ## API
 
