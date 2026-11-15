@@ -95,6 +95,7 @@ The browser calls the backend on the same origin (`fetch("/api/...")`), so there
 
 - **Shareable URLs:** after each successful evaluation the page URL is replaced with `?site=<id>` or `?lat=…&lon=…`, plus `start=YYYY-MM-DDTHH:mm` (UTC) and `days`. On load these parameters prefill the form; missing ones fall back to the defaults (first south-pole site, 2026-12-01 00:00 UTC, 14 days).
 - **South-pole map:** `south-pole-map.png` is 848 × 848 px, polar stereographic centered on the pole, half-width 305,280 m (≈80°S at the edge midpoints), image up = 0°E (toward Earth), 90°E to the right. The constants in `components/south-pole-map.tsx` must match `scripts/build_basemap.py`. Clicking a dot selects a curated site; clicking elsewhere evaluates that point as custom coordinates.
+- **Mission player** (`components/mission-view.tsx`): a time slider plus Play/Pause over the scenario samples (about 12 s per mission, 80 ms frames). The sky chart marks the Sun and Earth at the selected sample; both timelines draw a white cursor at that time; a status line shows each body's elevation, visibility and visible disk. It remounts (resets to landing time) whenever the scenario changes.
 - Charts are Observable Plot SVGs re-rendered on container resize (`components/plot-figure.tsx`), each with an `aria-label`.
 
 ## Invariants

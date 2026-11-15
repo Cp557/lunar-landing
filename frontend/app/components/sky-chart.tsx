@@ -16,8 +16,8 @@ function track(s: Scenario, az: number[], el: number[]): Point[] {
   return az.map((a, i) => ({ az: a, el: el[i], visible: el[i] > horizonAt(s, a) }));
 }
 
-/** Panorama of the site's sky: terrain silhouette plus the Sun and Earth paths. */
-export function SkyChart({ scenario }: { scenario: Scenario }) {
+/** Panorama of the site's sky: terrain silhouette, the Sun and Earth paths, and markers at sample `index`. */
+export function SkyChart({ scenario, index = 0 }: { scenario: Scenario; index?: number }) {
   const render = useCallback(
     (width: number) => {
       const s = scenario.series;
@@ -31,9 +31,10 @@ export function SkyChart({ scenario }: { scenario: Scenario }) {
       const yMax = Math.min(90, Math.ceil(top));
       const yMin = Math.max(-12, Math.floor(Math.min(-4, ...horizon.map((p) => p.el)) - 1));
       const inView = (p: Point) => p.el >= yMin && p.el <= yMax;
-      const startMarks = [
-        { ...sun[0], label: "Sun at landing", color: COLORS.sun },
-        { ...earth[0], label: "Earth at landing", color: COLORS.earth },
+      const suffix = index === 0 ? " at landing" : "";
+      const current = [
+        { ...sun[index], label: `Sun${suffix}`, color: COLORS.sun },
+        { ...earth[index], label: `Earth${suffix}`, color: COLORS.earth },
       ].filter(inView);
 
       return Plot.plot({
@@ -62,8 +63,8 @@ export function SkyChart({ scenario }: { scenario: Scenario }) {
           }),
           Plot.dot(sun.filter((p) => inView(p) && p.visible), { x: "az", y: "el", r: 1.4, fill: COLORS.sun }),
           Plot.dot(earth.filter((p) => inView(p) && p.visible), { x: "az", y: "el", r: 1.4, fill: COLORS.earth }),
-          // Landing-time markers: filled when visible, hollow when hidden behind terrain.
-          Plot.dot(startMarks, {
+          // Current-time markers: filled when visible, hollow when hidden behind terrain.
+          Plot.dot(current, {
             x: "az",
             y: "el",
             r: 6,
@@ -71,7 +72,7 @@ export function SkyChart({ scenario }: { scenario: Scenario }) {
             stroke: "color",
             strokeWidth: 2,
           }),
-          Plot.text(startMarks, {
+          Plot.text(current, {
             x: "az",
             y: "el",
             text: "label",
@@ -82,7 +83,7 @@ export function SkyChart({ scenario }: { scenario: Scenario }) {
         ],
       });
     },
-    [scenario],
+    [scenario, index],
   );
 
   return <PlotFigure render={render} label="Panorama of the terrain horizon with the paths of the Sun and Earth during the mission" />;

@@ -19,6 +19,7 @@ Pick a landing site (29 curated sites with sources, including NASA's 9 Artemis I
 - **Risk:** the longest dark period (battery/thermal survival) and the longest communication blackout.
 - **Sky view:** the real terrain horizon with the Sun's and Earth's paths over the mission.
 - **Timeline:** when the site is sunlit and when Earth is visible, and how far above the horizon each is.
+- **Mission playback:** scrub or play through the mission and watch the Sun circle the horizon and Earth rise and set.
 - **Comparison:** up to three scenarios side by side.
 - **Best landing dates:** the same site and mission length for every landing day over the next year.
 - **Solar power:** average sunlight on a vertical panel turned to the Sun vs a flat panel.

@@ -6,9 +6,8 @@ import { CompareTable } from "./components/compare";
 import { LandingWindowsPanel } from "./components/landing-windows";
 import { Results } from "./components/results";
 import { CUSTOM, type FormState, ScenarioForm, toQuery } from "./components/scenario-form";
-import { SkyChart } from "./components/sky-chart";
+import { MissionView } from "./components/mission-view";
 import { SouthPoleMap } from "./components/south-pole-map";
-import { MarginChart, TimelineChart } from "./components/timeline-chart";
 import { fetchScenario, fetchSites } from "./lib/api";
 import type { Scenario, ScenarioQuery, Site } from "./lib/types";
 
@@ -42,16 +41,6 @@ function formFromUrl(defaults: FormState): FormState {
 function queryFor(s: Scenario): ScenarioQuery {
   const where = s.site.id ? { site: s.site.id } : { lat: s.site.lat, lon: s.site.lon };
   return { ...where, start: new Date(s.start * 1000).toISOString(), days: Math.round((s.end - s.start) / 86400) };
-}
-
-function Card({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-xl border border-line bg-panel p-4">
-      <h2 className="font-semibold">{title}</h2>
-      <p className="mb-2 text-sm text-muted">{subtitle}</p>
-      {children}
-    </section>
-  );
 }
 
 export function Navigator() {
@@ -132,16 +121,7 @@ export function Navigator() {
         {scenario && (
           <div className={`space-y-4 transition-opacity ${busy ? "opacity-60" : ""}`}>
             <Results scenario={scenario} />
-            <Card
-              title="Sky from the landing site"
-              subtitle="Gray area is the terrain horizon. Orange and blue trace the Sun and Earth over the mission while visible; gray dots are where they are hidden behind terrain."
-            >
-              <SkyChart scenario={scenario} />
-            </Card>
-            <Card title="Timeline" subtitle="When the Sun and Earth are above the local horizon, and by how much.">
-              <TimelineChart scenario={scenario} />
-              <MarginChart scenario={scenario} />
-            </Card>
+            <MissionView key={`${scenario.site.lat},${scenario.site.lon},${scenario.start},${scenario.end}`} scenario={scenario} />
             <LandingWindowsPanel
               key={`${scenario.site.lat},${scenario.site.lon}`}
               query={queryFor(scenario)}

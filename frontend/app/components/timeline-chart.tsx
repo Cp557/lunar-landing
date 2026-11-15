@@ -14,8 +14,13 @@ function bars(row: string, spans: Interval[], color: string) {
   return spans.map(([a, b]) => ({ row, x1: new Date(a * 1000), x2: new Date(b * 1000), color }));
 }
 
+/** Vertical line at the scrubber time (unix seconds), if any. */
+function cursor(time: number | undefined) {
+  return time === undefined ? [] : [Plot.ruleX([new Date(time * 1000)], { stroke: COLORS.text, strokeWidth: 1.5 })];
+}
+
 /** When the Sun and Earth are above the terrain horizon over the mission. */
-export function TimelineChart({ scenario }: { scenario: Scenario }) {
+export function TimelineChart({ scenario, time }: { scenario: Scenario; time?: number }) {
   const render = useCallback(
     (width: number) => {
       const { sun, earth } = scenario.intervals;
@@ -34,16 +39,17 @@ export function TimelineChart({ scenario }: { scenario: Scenario }) {
         marks: [
           Plot.barX(ROWS, { x1: new Date(scenario.start * 1000), x2: new Date(scenario.end * 1000), y: (d: string) => d, fill: "#1a2a45" }),
           Plot.barX(data, { x1: "x1", x2: "x2", y: "row", fill: "color", insetTop: 4, insetBottom: 4 }),
+          ...cursor(time),
         ],
       });
     },
-    [scenario],
+    [scenario, time],
   );
   return <PlotFigure render={render} label="Timeline bars showing when the site is sunlit, has Earth in view, and both" />;
 }
 
 /** Elevation of the Sun and Earth above the local terrain horizon over time. */
-export function MarginChart({ scenario }: { scenario: Scenario }) {
+export function MarginChart({ scenario, time }: { scenario: Scenario; time?: number }) {
   const render = useCallback(
     (width: number) => {
       const s = scenario.series;
@@ -65,10 +71,11 @@ export function MarginChart({ scenario }: { scenario: Scenario }) {
         marks: [
           Plot.ruleY([0], { stroke: COLORS.text, strokeOpacity: 0.7 }),
           Plot.line(points, { x: "t", y: "margin", stroke: "body", strokeWidth: 1.5 }),
+          ...cursor(time),
         ],
       });
     },
-    [scenario],
+    [scenario, time],
   );
   return <PlotFigure render={render} label="Line chart of the Sun and Earth elevation above the terrain horizon over the mission" />;
 }
