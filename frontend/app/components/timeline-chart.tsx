@@ -4,110 +4,81 @@ import * as Plot from "@observablehq/plot";
 import { useCallback } from "react";
 
 import { COLORS } from "../lib/colors";
-import { formatPercent, horizonAt, intersect } from "../lib/format";
+import { formatDuration, formatPercent, intersect } from "../lib/format";
 import type { Interval, Scenario } from "../lib/types";
-import { type PlotElement, PlotFigure, overlayLayer, svg } from "./plot-figure";
+import { type PlotElement, PlotFigure } from "./plot-figure";
 
-// Both charts share these so their time axes line up exactly.
-const MARGIN = { left: 128, right: 52 };
+const MARGIN = { left: 128, right: 16 };
 const DAY = 86400;
+const PX_PER_CHAR = 6.6; // 12 px Outfit, for deciding whether a label fits inside its stretch
 
-const days = (s: Scenario, t: number) => (t - s.start) / DAY;
-const xAxis = (s: Scenario) => ({ domain: [0, days(s, s.end)], label: "Days after landing", labelAnchor: "center" as const });
-
-/** Vertical cursor line at mission time `time` (unix seconds), drawn on top without rebuilding. */
-function cursor(scenario: Scenario, time: number) {
-  return (plot: PlotElement) => {
-    const g = overlayLayer(plot);
-    const x = plot.scale("x");
-    const y = plot.scale("y");
-    if (!x || !y?.range) return;
-    const cx = x.apply(days(scenario, time));
-    const [y0, y1] = [Math.min(...y.range), Math.max(...y.range)];
-    g.append(svg("line", { x1: cx, x2: cx, y1: y0, y2: y1, stroke: COLORS.text, "stroke-width": 1.5 }));
-  };
+/** The parts of [start, end] not covered by `spans` (sorted, non-overlapping, inside it). */
+function gaps(spans: Interval[], start: number, end: number): Interval[] {
+  const out: Interval[] = [];
+  let cursor = start;
+  for (const [a, b] of spans) {
+    if (a > cursor) out.push([cursor, a]);
+    cursor = Math.max(cursor, b);
+  }
+  if (end > cursor) out.push([cursor, end]);
+  return out;
 }
 
-/** When the site has sunlight, Earth contact, and both. */
-export function TimelineChart({ scenario, time }: { scenario: Scenario; time: number }) {
+/**
+ * The whole mission at a glance: when the lander has sunlight, Earth contact, or both. Every
+ * stretch wide enough to hold a label says how long it lasts; gaps say "dark" or "no contact".
+ */
+export function TimelineChart({ scenario }: { scenario: Scenario }) {
   const render = useCallback(
     (width: number) => {
-      const { sun, earth } = scenario.intervals;
+      const { start, end, intervals } = scenario;
       const m = scenario.metrics;
       const rows = [
-        { name: `Sunlight ${formatPercent(m.sun.visible_percent)}`, spans: sun, color: COLORS.sun },
-        { name: `Earth contact ${formatPercent(m.earth.visible_percent)}`, spans: earth, color: COLORS.earth },
-        { name: `Both ${formatPercent(m.both_percent)}`, spans: intersect(sun, earth), color: COLORS.both },
+        { name: `Sunlight ${formatPercent(m.sun.visible_percent)}`, spans: intervals.sun, color: COLORS.sun, gap: "dark" },
+        { name: `Earth contact ${formatPercent(m.earth.visible_percent)}`, spans: intervals.earth, color: COLORS.earth, gap: "no contact" },
+        { name: `Both ${formatPercent(m.both_percent)}`, spans: intersect(intervals.sun, intervals.earth), color: COLORS.both, gap: "" },
       ];
-      const bars = rows.flatMap((r) =>
-        r.spans.map(([a, b]: Interval) => ({ row: r.name, x1: days(scenario, a), x2: days(scenario, b), color: r.color })),
-      );
-      const end = days(scenario, scenario.end);
-      return Plot.plot({
-        width,
-        height: 112,
-        marginTop: 4,
-        marginLeft: MARGIN.left,
-        marginRight: MARGIN.right,
-        style: { background: "transparent", color: COLORS.muted, fontSize: "12px", fontFamily: COLORS.font },
-        x: { ...xAxis(scenario), axis: null },
-        y: { domain: rows.map((r) => r.name), label: null, tickSize: 0 },
-        marks: [
-          Plot.barX(rows, { x1: 0, x2: end, y: "name", fill: COLORS.track, rx: 4 }),
-          Plot.barX(bars, { x1: "x1", x2: "x2", y: "row", fill: "color", insetTop: 3, insetBottom: 3, rx: 3 }),
-        ],
-      }) as PlotElement;
-    },
-    [scenario],
-  );
-  const overlay = useCallback((plot: PlotElement) => cursor(scenario, time)(plot), [scenario, time]);
-  return (
-    <PlotFigure
-      render={render}
-      overlay={overlay}
-      label="Timeline bars showing when the site has sunlight, Earth contact, and both"
-    />
-  );
-}
+      const total = (end - start) / DAY;
+      const pxPerDay = (width - MARGIN.left - MARGIN.right) / total;
+      const day = (t: number) => (t - start) / DAY;
+      const fits = ([a, b]: Interval, text: string) => (b - a) / DAY * pxPerDay >= text.length * PX_PER_CHAR + 14;
 
-/** How far above (or below) the terrain horizon the Sun and Earth are; above the line = visible. */
-export function ElevationChart({ scenario, time }: { scenario: Scenario; time: number }) {
-  const render = useCallback(
-    (width: number) => {
-      const s = scenario.series;
-      const points = s.t.flatMap((t, i) => [
-        { day: days(scenario, t), margin: s.sun_el[i] - horizonAt(scenario, s.sun_az[i]), body: "Sun" },
-        { day: days(scenario, t), margin: s.earth_el[i] - horizonAt(scenario, s.earth_az[i]), body: "Earth" },
-      ]);
-      const margins = points.map((p) => p.margin);
-      const lo = Math.max(-15, Math.floor(Math.min(-2, ...margins)));
-      const hi = Math.min(90, Math.ceil(Math.max(2, ...margins)));
+      const bars = rows.flatMap((r) => r.spans.map(([a, b]) => ({ row: r.name, x1: day(a), x2: day(b), color: r.color })));
+      const labels = rows.flatMap((r) => [
+        ...r.spans.map((s) => ({ row: r.name, span: s, text: formatDuration((s[1] - s[0]) / 3600), fill: "#0b1222" })),
+        ...(r.gap ? gaps(r.spans, start, end).map((s) => ({ row: r.name, span: s, text: `${formatDuration((s[1] - s[0]) / 3600)} ${r.gap}`, fill: COLORS.muted })) : []),
+      ]).filter((l) => fits(l.span, l.text));
+
       return Plot.plot({
         width,
-        height: 200,
+        height: 3 * 42 + 44,
+        marginTop: 4,
+        marginBottom: 40,
         marginLeft: MARGIN.left,
         marginRight: MARGIN.right,
         style: { background: "transparent", color: COLORS.muted, fontSize: "12px", fontFamily: COLORS.font },
-        x: xAxis(scenario),
-        y: { domain: [lo, hi], grid: true, label: "Above the horizon (°)", clamp: true },
-        color: { domain: ["Sun", "Earth"], range: [COLORS.sun, COLORS.earth] },
+        x: { domain: [0, total], label: "Days after landing →", labelAnchor: "center", labelOffset: 34 },
+        y: { domain: rows.map((r) => r.name), label: null, tickSize: 0, padding: 0.16 },
         marks: [
-          // Below the terrain horizon = hidden.
-          Plot.rectY([0], { x1: 0, x2: days(scenario, scenario.end), y1: lo, y2: 0, fill: COLORS.track, fillOpacity: 0.6 }),
-          Plot.text(["hidden behind terrain"], { frameAnchor: "bottom-left", dx: 6, dy: -4, fill: COLORS.muted, fontSize: 11 }),
-          Plot.ruleY([0], { stroke: COLORS.text, strokeOpacity: 0.8 }),
-          Plot.line(points, { x: "day", y: "margin", z: "body", stroke: "body", strokeWidth: 1.75 }),
+          Plot.barX(rows, { x1: 0, x2: total, y: "name", fill: COLORS.track, rx: 6 }),
+          Plot.barX(bars, { x1: "x1", x2: "x2", y: "row", fill: "color", rx: 4 }),
+          Plot.text(labels, {
+            x: (l) => day((l.span[0] + l.span[1]) / 2),
+            y: "row",
+            text: "text",
+            fill: "fill",
+            fontSize: 12,
+            fontWeight: 600,
+          }),
         ],
       }) as PlotElement;
     },
     [scenario],
   );
-  const overlay = useCallback((plot: PlotElement) => cursor(scenario, time)(plot), [scenario, time]);
   return (
     <PlotFigure
       render={render}
-      overlay={overlay}
-      label="Line chart of how far the Sun and Earth are above the terrain horizon over the mission"
+      label="Timeline of the mission showing when the lander has sunlight, Earth contact, and both, with how long each stretch lasts"
     />
   );
 }

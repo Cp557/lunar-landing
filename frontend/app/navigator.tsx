@@ -11,7 +11,8 @@ import { CompareTable } from "./components/compare";
 import { LandingWindowsPanel } from "./components/landing-windows";
 import { Answer, Details } from "./components/results";
 import { CUSTOM, type FormState, ScenarioForm, toQuery } from "./components/scenario-form";
-import { MissionTimeline, SkyViews } from "./components/mission-view";
+import { MissionPlayer, useMissionClock } from "./components/mission-player";
+import { MissionTimeline, MissionViews } from "./components/mission-view";
 import { SouthPoleMap } from "./components/south-pole-map";
 import { fetchScenario, fetchSites } from "./lib/api";
 import type { Scenario, ScenarioQuery, Site } from "./lib/types";
@@ -52,24 +53,26 @@ export function Navigator() {
   const [sites, setSites] = useState<Site[]>([]);
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
   const [scenario, setScenario] = useState<Scenario | null>(null);
-  const [index, setIndex] = useState(0); // time slider position, shared by the sky views and the map
   const [compare, setCompare] = useState<Scenario[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // One mission time (sample index) for the whole page: the map's shadows and every view follow it.
+  const clock = useMissionClock(scenario ? scenario.series.t.length - 1 : 0);
+  const { index, reset: resetClock } = clock;
 
   const evaluate = useCallback(async (f: FormState) => {
     setBusy(true);
     setError(null);
     try {
       setScenario(await fetchScenario(toQuery(f)));
-      setIndex(0);
+      resetClock();
       window.history.replaceState(null, "", urlFor(f));
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
     }
-  }, []);
+  }, [resetClock]);
 
   useEffect(() => {
     fetchSites()
@@ -104,7 +107,6 @@ export function Navigator() {
   const inCompare = scenario !== null && compare.includes(scenario);
 
   const dim = `transition-opacity ${busy ? "opacity-60" : ""}`;
-  const scenarioKey = scenario ? `${scenario.site.lat},${scenario.site.lon},${scenario.start},${scenario.end}` : "";
 
   return (
     <div className="space-y-4">
@@ -134,7 +136,9 @@ export function Navigator() {
             subsolar={scenario ? { lat: scenario.series.subsolar_lat[index], lon: scenario.series.subsolar_lon[index] } : null}
             onPickSite={(id) => run({ siteId: id })}
             onPickPoint={(lat, lon) => run({ siteId: CUSTOM, lat: lat.toFixed(4), lon: lon.toFixed(4) })}
-          />
+          >
+            {scenario && <MissionPlayer scenario={scenario} clock={clock} />}
+          </SouthPoleMap>
         </div>
         <div className="min-w-0 space-y-3 lg:col-start-2">
           {error && (
@@ -155,10 +159,9 @@ export function Navigator() {
       {compare.length > 0 && <CompareTable scenarios={compare} onRemove={(i) => setCompare(compare.filter((_, j) => j !== i))} />}
       {scenario && (
         <div className={`space-y-4 ${dim}`}>
-          {/* Keyed by scenario so playback and the chosen sky view reset for each new evaluation. */}
-          <MissionTimeline key={`timeline-${scenarioKey}`} scenario={scenario} index={index} setIndex={setIndex} />
+          <MissionTimeline scenario={scenario} />
           <Details scenario={scenario} />
-          <SkyViews key={`sky-${scenarioKey}`} scenario={scenario} sites={sites} index={index} />
+          <MissionViews scenario={scenario} sites={sites} clock={clock} />
           <LandingWindowsPanel
             key={`${scenario.site.lat},${scenario.site.lon}`}
             query={queryFor(scenario)}

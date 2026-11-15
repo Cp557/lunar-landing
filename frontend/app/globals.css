@@ -15,8 +15,9 @@
   --earth: #4ea8f5;
   --both: #7bd389;
   --radius: 0.625rem;
-  /* South-pole map square: as large as fits on the first screen (page header + card chrome ≈ 13.5rem). */
-  --map-size: max(20rem, 100vh - 13.5rem);
+  /* South-pole map square: as large as fits on the first screen with the player under it
+     (page header + card chrome + player ≈ 17.5rem). */
+  --map-size: max(20rem, 100vh - 17.5rem);
 }
 
 .dark {

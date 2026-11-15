@@ -1,34 +1,27 @@
 "use client";
 
-import { PauseIcon, PlayIcon, Refresh01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { COLORS } from "../lib/colors";
-import { formatUtc, horizonAt } from "../lib/format";
+import { horizonAt } from "../lib/format";
 import type { Scenario, Site } from "../lib/types";
+import { type MissionClock, MissionPlayer } from "./mission-player";
 import { SkyChart } from "./sky-chart";
-import { SkyDome } from "./sky-dome";
-import { ElevationChart, TimelineChart } from "./timeline-chart";
+import { TimelineChart } from "./timeline-chart";
 
-// three.js is large: load the globe only when its tab is opened, and never on the server.
-const MoonGlobe = dynamic(() => import("./moon-globe"), {
-  ssr: false,
-  loading: () => <p className="grid h-full place-items-center text-sm text-muted-foreground">Loading globe…</p>,
-});
+// three.js is large: load the 3D views only when their tab is opened, and never on the server.
+const loading = () => <p className="grid h-full place-items-center text-sm text-muted-foreground">Loading 3D view…</p>;
+const MoonGlobe = dynamic(() => import("./moon-globe"), { ssr: false, loading });
 
-// Every sky view sits in one grid cell (inactive ones invisible), so the card is always as tall as the
-// tallest view and switching tabs never moves the page below.
-const SKY_PANEL = "grid grid-cols-1 content-start gap-2 pt-2 data-[state=inactive]:invisible";
-
-const FRAME_MS = 80;
-const FRAMES_PER_MISSION = 150; // about 12 s to play a whole mission
+// Every view sits in one grid cell (inactive ones invisible), so the card is always as tall as the
+// tallest view and switching tabs never moves the page below. grid-cols-1 (minmax(0, 1fr)) so a
+// wide canvas can't hold the column open after the window shrinks.
+const VIEW_PANEL = "grid grid-cols-1 content-start gap-2 pt-2 data-[state=inactive]:invisible";
+const TAB = "px-2 text-xs sm:px-3 sm:text-sm";
 
 function Dot({ color, hollow = false }: { color: string; hollow?: boolean }) {
   return (
@@ -60,84 +53,45 @@ function Readout({ title, rows }: { title: React.ReactNode; rows: [string, React
   );
 }
 
-/**
- * The mission over time: Play and the time slider (shared by the map's shadows and the sky views),
- * live readouts at the chosen time, and the timelines with a cursor at that time.
- */
-export function MissionTimeline({
-  scenario,
-  index,
-  setIndex,
-}: {
-  scenario: Scenario;
-  index: number;
-  setIndex: (update: number | ((i: number) => number)) => void;
-}) {
+/** The whole mission at a glance: a static picture, readable without playing anything. */
+export function MissionTimeline({ scenario }: { scenario: Scenario }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Mission timeline</CardTitle>
+        <CardDescription>
+          When the lander has sunlight, Earth contact, or both, from landing to the end of the mission, and how long each
+          stretch lasts.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <TimelineChart scenario={scenario} />
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Watch the mission play out: the skyline around the lander and the 3D views, all on the mission clock. */
+export function MissionViews({ scenario, sites, clock }: { scenario: Scenario; sites: Site[]; clock: MissionClock }) {
   const s = scenario.series;
-  const last = s.t.length - 1;
-  const [playing, setPlaying] = useState(false);
-  const atEnd = index >= last;
-  const isPlaying = playing && !atEnd;
-
-  useEffect(() => {
-    if (!isPlaying) return;
-    const step = Math.max(1, Math.ceil(last / FRAMES_PER_MISSION));
-    const timer = setInterval(() => setIndex((i) => Math.min(i + step, last)), FRAME_MS);
-    return () => clearInterval(timer);
-  }, [isPlaying, last, setIndex]);
-
-  const t = s.t[index];
-  const totalDays = Number(((scenario.end - scenario.start) / 86400).toFixed(1));
+  const { index } = clock;
+  const [view, setView] = useState("skyline");
+  const [opened, setOpened] = useState(() => new Set(["skyline"])); // 3D views mount the first time they're opened
   const sunUp = s.sun_el[index] > horizonAt(scenario, s.sun_az[index]);
   const earthUp = s.earth_el[index] > horizonAt(scenario, s.earth_az[index]);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Mission timeline</CardTitle>
+        <CardTitle>Watch the mission</CardTitle>
         <CardDescription>
-          Top chart: when the lander has sunlight, Earth contact, or both. Bottom: how high the Sun and Earth are above the
-          skyline — above the white line means visible. Press play or drag the slider to move the white cursor; the map&apos;s
-          shadows and the sky views below follow it.
+          Press play to see the Sun and Earth move along the real skyline of hills and crater rims around the lander:
+          each is visible only while it is above that skyline.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid min-w-0 gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-24 shrink-0"
-            onClick={() => {
-              if (atEnd) setIndex(0);
-              setPlaying(atEnd || !isPlaying);
-            }}
-          >
-            <HugeiconsIcon icon={isPlaying ? PauseIcon : atEnd ? Refresh01Icon : PlayIcon} strokeWidth={2} data-icon="inline-start" />
-            {isPlaying ? "Pause" : atEnd ? "Replay" : "Play"}
-          </Button>
-          <Slider
-            aria-label="Mission time"
-            min={0}
-            max={last}
-            step={1}
-            value={[index]}
-            onValueChange={([value]) => {
-              setPlaying(false);
-              setIndex(value);
-            }}
-            className="flex-1"
-          />
-        </div>
-        <div className="grid max-w-4xl grid-cols-2 gap-2 sm:grid-cols-3">
-          <div className="col-span-2 sm:col-span-1">
-            <Readout
-              title="Mission time"
-              rows={[
-                ["Day", `${((t - scenario.start) / 86400).toFixed(1)} of ${totalDays}`],
-                ["UTC", formatUtc(t).replace(" UTC", "")],
-              ]}
-            />
-          </div>
+        <MissionPlayer scenario={scenario} clock={clock} />
+        <div className="grid max-w-2xl grid-cols-2 gap-2">
           <Readout
             title={
               <>
@@ -161,62 +115,23 @@ export function MissionTimeline({
             ]}
           />
         </div>
-        <div className="grid gap-1">
-          <TimelineChart scenario={scenario} time={t} />
-          <ElevationChart scenario={scenario} time={t} />
-          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <li className="flex items-center gap-1.5">
-              <span className="inline-block h-0.5 w-4" style={{ background: COLORS.sun }} /> Sun
-            </li>
-            <li className="flex items-center gap-1.5">
-              <span className="inline-block h-0.5 w-4" style={{ background: COLORS.earth }} /> Earth
-            </li>
-            <li className="flex items-center gap-1.5">
-              <span className="inline-block h-2.5 w-4 rounded-sm" style={{ background: COLORS.track }} /> below the skyline = hidden
-            </li>
-          </ul>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-/** The sky around the lander at the time on the mission slider: 360° chart, round sky map, 3D globe. */
-export function SkyViews({ scenario, sites, index }: { scenario: Scenario; sites: Site[]; index: number }) {
-  const s = scenario.series;
-  const [view, setView] = useState("panorama");
-  const [globeOpened, setGlobeOpened] = useState(false); // three.js loads only once the Globe tab is opened
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>The sky from the lander</CardTitle>
-        <CardDescription>
-          The real skyline of hills and crater rims around the landing site. The Sun and Earth are visible only when they
-          are above it. These views follow the mission slider above.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid min-w-0 gap-3">
         <Tabs
           value={view}
           onValueChange={(v) => {
             setView(v);
-            if (v === "globe") setGlobeOpened(true);
+            setOpened((o) => new Set(o).add(v));
           }}
         >
           <TabsList className="w-full sm:w-fit">
-            <TabsTrigger value="panorama" className="px-2 text-xs sm:px-3 sm:text-sm">
-              360° chart
+            <TabsTrigger value="skyline" className={TAB}>
+              360° skyline
             </TabsTrigger>
-            <TabsTrigger value="dome" className="px-2 text-xs sm:px-3 sm:text-sm">
-              Sky map
-            </TabsTrigger>
-            <TabsTrigger value="globe" className="px-2 text-xs sm:px-3 sm:text-sm">
+            <TabsTrigger value="globe" className={TAB}>
               Globe
             </TabsTrigger>
           </TabsList>
-          {/* grid-cols-1 (minmax(0, 1fr)) so a wide globe canvas can't hold the column open after a resize. */}
           <div className="grid grid-cols-1 *:col-start-1 *:row-start-1">
-            <TabsContent value="panorama" forceMount className={SKY_PANEL}>
+            <TabsContent value="skyline" forceMount className={VIEW_PANEL}>
               <SkyChart scenario={scenario} index={index} />
               <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                 <li className="flex items-center gap-1.5">
@@ -234,12 +149,9 @@ export function SkyViews({ scenario, sites, index }: { scenario: Scenario; sites
                 <li>Heights are stretched so the low skyline is easy to see.</li>
               </ul>
             </TabsContent>
-            <TabsContent value="dome" forceMount className={SKY_PANEL}>
-              <SkyDome scenario={scenario} index={index} />
-            </TabsContent>
-            <TabsContent value="globe" forceMount className={SKY_PANEL}>
+            <TabsContent value="globe" forceMount className={VIEW_PANEL}>
               <div className="h-[360px]">
-                {globeOpened && (
+                {opened.has("globe") && (
                   <MoonGlobe sites={sites} site={scenario.site} subsolar={{ lat: s.subsolar_lat[index], lon: s.subsolar_lon[index] }} />
                 )}
               </div>

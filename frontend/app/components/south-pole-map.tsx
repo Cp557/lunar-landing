@@ -61,6 +61,7 @@ const LAYERS: { id: Layer; label: string; icon: typeof Sun03Icon; image?: string
 ];
 
 type MapProps = {
+  children?: React.ReactNode; // shown right under the map (the mission player)
   sites: Site[];
   current: { lat: number; lon: number } | null;
   subsolar: { lat: number; lon: number } | null;
@@ -72,9 +73,9 @@ type MapProps = {
  * The south-pole map card: layer switch, hover readout, the map square (as large as fits on the
  * first screen, `--map-size` in globals.css) and its legends.
  */
-export function SouthPoleMap({ sites, current, subsolar, onPickSite, onPickPoint }: MapProps) {
+export function SouthPoleMap({ children, sites, current, subsolar, onPickSite, onPickPoint }: MapProps) {
   const [hover, setHover] = useState<{ lat: number; lon: number; fx: number; fy: number } | null>(null);
-  const [layer, setLayer] = useState<Layer>("terrain");
+  const [layer, setLayer] = useState<Layer>("shadows"); // live shadows first: press play under the map to watch them move
   const [heat, setHeat] = useState<Heatmap | null>(null);
 
   useEffect(() => {
@@ -170,6 +171,7 @@ export function SouthPoleMap({ sites, current, subsolar, onPickSite, onPickPoint
             />
           )}
         </div>
+        {children}
         <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           {LEGEND.map(([kind, label]) => (
             <li key={kind} className="flex items-center gap-1.5">
@@ -197,7 +199,7 @@ function LayerNote({ layer, heat }: { layer: (typeof LAYERS)[number]; heat: Heat
   if (layer.id === "terrain")
     return <p>Shaded relief from NASA LOLA laser-altimeter elevation data, 80°S to the pole.</p>;
   if (layer.id === "shadows")
-    return <p>Terrain shadows at the time on the mission slider below; press play there to watch them move. Approximate (720 m terrain).</p>;
+    return <p>Terrain shadows at the time on the slider above; press play to watch them sweep around the pole as the Sun circles. Approximate (720 m terrain).</p>;
   const max = heat?.scale_max[layer.id as "sun" | "earth"];
   return (
     <div className="grid gap-1">

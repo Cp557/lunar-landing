@@ -3,7 +3,7 @@
 import numpy as np
 
 from lunar.brief import mission_brief
-from lunar.ephemeris import earth_phase, subsolar_point
+from lunar.ephemeris import earth_phase, subearth_point, subsolar_point
 from lunar.metrics import body_metrics, both_percent, longest_run, visible_intervals
 from lunar.terrain import AZIMUTHS_DEG, LANDER_HEIGHT_M, Horizon
 from lunar.visibility import solar_irradiance_w_m2, visibility
@@ -30,6 +30,7 @@ def scenario(lat: float, lon: float, horizon: Horizon, start: float, days: float
     vertical, horizontal = solar_irradiance_w_m2(sun)
     earth_lit = earth_phase(lat, lon, t, horizon.site_height_m + LANDER_HEIGHT_M)
     sub_lat, sub_lon = subsolar_point(t)
+    earth_sub_lat, earth_sub_lon = subearth_point(t)
     metrics = {
         "sun": body_metrics(t, sun.margin_deg, sun.disk),
         "earth": body_metrics(t, earth.margin_deg, earth.disk),
@@ -59,6 +60,8 @@ def scenario(lat: float, lon: float, horizon: Horizon, start: float, days: float
             "earth_lit": rounded(earth_lit),
             "subsolar_lat": rounded(sub_lat),
             "subsolar_lon": rounded(sub_lon),
+            "subearth_lat": rounded(earth_sub_lat),
+            "subearth_lon": rounded(earth_sub_lon),
         },
         "intervals": {
             "sun": visible_intervals(t, sun.margin_deg),

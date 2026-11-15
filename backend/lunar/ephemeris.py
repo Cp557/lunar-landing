@@ -102,9 +102,19 @@ def earth_phase(
     return (1 + cos_i) / 2
 
 
+def _point_under(vectors: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Latitude and east longitude (degrees) where Moon-fixed vectors pierce the surface."""
+    lat = np.degrees(np.arcsin(vectors[:, 2] / np.linalg.norm(vectors, axis=-1)))
+    return lat, np.degrees(np.arctan2(vectors[:, 1], vectors[:, 0]))
+
+
 def subsolar_point(times: np.ndarray, eph: Ephemeris | None = None) -> tuple[np.ndarray, np.ndarray]:
     """Latitude and east longitude (degrees) of the point on the Moon directly under the Sun."""
     eph = eph or load_ephemeris()
-    sun, _ = eph.vectors(times)
-    lat = np.degrees(np.arcsin(sun[:, 2] / np.linalg.norm(sun, axis=-1)))
-    return lat, np.degrees(np.arctan2(sun[:, 1], sun[:, 0]))
+    return _point_under(eph.vectors(times)[0])
+
+
+def subearth_point(times: np.ndarray, eph: Ephemeris | None = None) -> tuple[np.ndarray, np.ndarray]:
+    """Latitude and east longitude (degrees) of the point on the Moon directly under Earth."""
+    eph = eph or load_ephemeris()
+    return _point_under(eph.vectors(times)[1])
