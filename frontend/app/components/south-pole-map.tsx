@@ -3,12 +3,8 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-import { Maximize01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 import { formatLatLon } from "../lib/format";
 import { ShadowLayer } from "./shadow-layer";
@@ -70,8 +66,11 @@ type MapProps = {
   onPickPoint: (lat: number, lon: number) => void;
 };
 
-/** The interactive map with its layer switch, legends and hover readout. */
-function MapPanel({ sites, current, subsolar, onPickSite, onPickPoint, large = false }: MapProps & { large?: boolean }) {
+/**
+ * The south-pole map card: layer switch, hover readout, the map square (as large as fits on the
+ * first screen, `--map-size` in globals.css) and its legends.
+ */
+export function SouthPoleMap({ sites, current, subsolar, onPickSite, onPickPoint }: MapProps) {
   const [hover, setHover] = useState<{ lat: number; lon: number; fx: number; fy: number } | null>(null);
   const [layer, setLayer] = useState<Layer>("terrain");
   const [heat, setHeat] = useState<Heatmap | null>(null);
@@ -90,7 +89,6 @@ function MapPanel({ sites, current, subsolar, onPickSite, onPickPoint, large = f
     const fy = (e.clientY - box.top) / box.height;
     return { ...fromMap(fx, fy), fx, fy };
   };
-  const active = LAYERS.find((l) => l.id === layer)!;
   const heatValue =
     hover && heat && (layer === "sun" || layer === "earth")
       ? heat[layer][Math.min(heat.grid - 1, Math.floor(hover.fy * heat.grid)) * heat.grid + Math.min(heat.grid - 1, Math.floor(hover.fx * heat.grid))]
@@ -100,18 +98,27 @@ function MapPanel({ sites, current, subsolar, onPickSite, onPickPoint, large = f
     return p ? [{ site: s, p }] : [];
   });
   const here = current ? toMap(current.lat, current.lon) : null;
+  const image = LAYERS.find((l) => l.id === layer)!.image;
 
   return (
-    <div className={large ? "grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]" : "grid gap-2"}>
-      <div className="grid min-w-0 content-start gap-1">
-        <span className="text-xs text-muted-foreground tabular-nums">
+    <Card size="sm">
+      <CardHeader className="flex flex-wrap items-center justify-between gap-2">
+        <CardTitle>South pole map</CardTitle>
+        <div className="flex flex-wrap gap-1" role="group" aria-label="Map layer">
+          {LAYERS.map((l) => (
+            <Button key={l.id} variant={layer === l.id ? "secondary" : "ghost"} size="xs" onClick={() => setLayer(l.id)} aria-pressed={layer === l.id}>
+              {l.label}
+            </Button>
+          ))}
+        </div>
+      </CardHeader>
+      <CardContent className="grid gap-2">
+        <span className="truncate text-xs text-muted-foreground tabular-nums">
           {hover ? formatLatLon(hover.lat, hover.lon) : "80°S–90°S · hover for coordinates"}
           {heatValue !== null && ` · ${heatValue}%`}
         </span>
         <div
-          className="relative mx-auto aspect-square w-full cursor-crosshair overflow-hidden rounded-3xl"
-          // In the enlarged view the square must also fit the window's height.
-          style={large ? { maxWidth: "min(100%, 76vh)" } : undefined}
+          className="relative mx-auto aspect-square w-full max-w-(--map-size) cursor-crosshair overflow-hidden rounded-3xl"
           onClick={(e) => {
             const { lat, lon } = fraction(e);
             onPickPoint(lat, lon);
@@ -128,11 +135,10 @@ function MapPanel({ sites, current, subsolar, onPickSite, onPickPoint, large = f
             className="pointer-events-none select-none"
             priority
           />
-          {active.image && (
-            <Image src={active.image} alt={`${active.label} map`} fill unoptimized className="pointer-events-none select-none" />
-          )}
+          {image && <Image src={image} alt={`${layer === "sun" ? "Sunlight" : "Earth contact"} map`} fill unoptimized className="pointer-events-none select-none" />}
           {layer === "shadows" && subsolar && <ShadowLayer subsolarLat={subsolar.lat} subsolarLon={subsolar.lon} />}
-          <span className={`${tag} top-1.5 left-1/2 -translate-x-1/2`}>0° · toward Earth ↑</span>
+          {/* In the corner: IM-1's dot (80.1°S, 1.4°E) sits at the top-center edge. */}
+          <span className={`${tag} top-1.5 left-1.5`}>↑ 0° · toward Earth</span>
           <span className={`${tag} top-1/2 right-1.5 -translate-y-1/2`}>90°E</span>
           <span className={`${tag} bottom-1.5 left-1/2 -translate-x-1/2`}>180°</span>
           <span className={`${tag} top-1/2 left-1.5 -translate-y-1/2`}>90°W</span>
@@ -146,47 +152,18 @@ function MapPanel({ sites, current, subsolar, onPickSite, onPickPoint, large = f
                 e.stopPropagation();
                 onPickSite(site.id);
               }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-background transition-transform hover:scale-150 ${large ? "size-4" : "size-3"}`}
+              className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-background transition-transform hover:scale-150 sm:size-4"
               style={{ left: `${p[0] * 100}%`, top: `${p[1] * 100}%`, background: KIND_COLOR[site.kind] ?? "white" }}
             />
           ))}
           {here && (
             <span
               aria-hidden
-              className={`pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white ${large ? "size-8" : "size-6"}`}
+              className="pointer-events-none absolute size-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white sm:size-8"
               style={{ left: `${here[0] * 100}%`, top: `${here[1] * 100}%` }}
             />
           )}
         </div>
-      </div>
-      <div className="grid content-start gap-2">
-        <div className="flex flex-wrap gap-1" role="group" aria-label="Map layer">
-          {LAYERS.map((l) => (
-            <Button key={l.id} variant={layer === l.id ? "secondary" : "ghost"} size="xs" onClick={() => setLayer(l.id)} aria-pressed={layer === l.id}>
-              {l.label}
-            </Button>
-          ))}
-        </div>
-        {active.gradient && (
-          <div className="grid gap-1 text-xs text-muted-foreground">
-            <div className="h-2 rounded-full" style={{ background: active.gradient }} />
-            <div className="flex justify-between">
-              <span>0%</span>
-              <span>{heat && (layer === "sun" || layer === "earth") ? `${heat.scale_max[layer]}%${heat.scale_max[layer] < 100 ? "+" : ""}` : ""}</span>
-            </div>
-            <p>
-              Share of {heat?.period ?? "2026–2030"} with {layer === "sun" ? "sunlight" : "Earth contact"}, at the center of
-              each ~4 km cell (240 m terrain, approximate). Narrow ridges can be much brighter than their cell — click a spot
-              for its exact value.
-            </p>
-          </div>
-        )}
-        {layer === "shadows" && (
-          <p className="text-xs text-muted-foreground">
-            Terrain shadows at the time on the sky slider; press play there to watch them move. Approximate (720 m terrain).
-          </p>
-        )}
-        <p className="text-xs text-muted-foreground">Click a dot for a curated site, or anywhere for that point (120–240 m terrain).</p>
         <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           {LEGEND.map(([kind, label]) => (
             <li key={kind} className="flex items-center gap-1.5">
@@ -195,49 +172,38 @@ function MapPanel({ sites, current, subsolar, onPickSite, onPickPoint, large = f
             </li>
           ))}
         </ul>
-      </div>
-    </div>
+        <p className="text-xs text-muted-foreground">Click a dot for a curated site, or anywhere for that point (120–240 m terrain).</p>
+        {/* Every layer's note sits in the same grid cell, so switching layers never changes the card's height. */}
+        <div className="grid text-xs text-muted-foreground *:col-start-1 *:row-start-1">
+          {LAYERS.map((l) => (
+            <div key={l.id} className={l.id === layer ? "" : "invisible"} aria-hidden={l.id !== layer}>
+              <LayerNote layer={l} heat={heat} />
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
-/** South-pole map card, with an "Enlarge" button that opens the same map in a large window. */
-export function SouthPoleMap(props: MapProps) {
-  const [open, setOpen] = useState(false);
-  // Picking from the enlarged map closes it so the updated results are visible.
-  const pickSite = (id: string) => {
-    props.onPickSite(id);
-    setOpen(false);
-  };
-  const pickPoint = (lat: number, lon: number) => {
-    props.onPickPoint(lat, lon);
-    setOpen(false);
-  };
-
+/** What a map layer shows: a color scale for the heat maps, a short note otherwise. */
+function LayerNote({ layer, heat }: { layer: (typeof LAYERS)[number]; heat: Heatmap | null }) {
+  if (layer.id === "terrain")
+    return <p>Shaded relief from NASA LOLA laser-altimeter elevation data, 80°S to the pole.</p>;
+  if (layer.id === "shadows")
+    return <p>Terrain shadows at the time on the sky slider below; press play there to watch them move. Approximate (720 m terrain).</p>;
+  const max = heat?.scale_max[layer.id as "sun" | "earth"];
   return (
-    <Card size="sm">
-      <CardHeader className="flex items-center justify-between gap-2">
-        <CardTitle>South pole map</CardTitle>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button variant="ghost" size="xs">
-              <HugeiconsIcon icon={Maximize01Icon} strokeWidth={2} data-icon="inline-start" />
-              Enlarge
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-h-[96vh] overflow-y-auto sm:max-w-[min(96vw,72rem)]">
-            <DialogHeader>
-              <DialogTitle>South pole map</DialogTitle>
-              <DialogDescription>
-                80°S to the pole, from NASA LOLA elevation data. Click a site or any point to evaluate it.
-              </DialogDescription>
-            </DialogHeader>
-            <MapPanel {...props} onPickSite={pickSite} onPickPoint={pickPoint} large />
-          </DialogContent>
-        </Dialog>
-      </CardHeader>
-      <CardContent>
-        <MapPanel {...props} />
-      </CardContent>
-    </Card>
+    <div className="grid gap-1">
+      <div className="h-2 rounded-full" style={{ background: layer.gradient }} />
+      <div className="flex justify-between">
+        <span>0%</span>
+        <span>{max === undefined ? "" : `${max}%${max < 100 ? "+" : ""}`}</span>
+      </div>
+      <p>
+        Share of {heat?.period ?? "2026–2030"} with {layer.id === "sun" ? "sunlight" : "Earth contact"}, at the center of each ~4 km
+        cell (240 m terrain, approximate). Narrow ridges can be much brighter than their cell — click a spot for its exact value.
+      </p>
+    </div>
   );
 }

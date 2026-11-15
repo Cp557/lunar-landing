@@ -11,7 +11,7 @@ import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { COLORS } from "../lib/colors";
-import { formatDuration, formatUtc, horizonAt } from "../lib/format";
+import { formatUtc, horizonAt } from "../lib/format";
 import type { Scenario, Site } from "../lib/types";
 import { LanderView } from "./lander-view";
 import { SkyChart } from "./sky-chart";
@@ -36,14 +36,24 @@ function Dot({ color, hollow = false }: { color: string; hollow?: boolean }) {
   );
 }
 
-function Status({ label, color, up, el, extra }: { label: string; color: string; up: boolean; el: number; extra: string }) {
+/** Signed degrees with two decimals and a real minus sign: "+1.07°", "−29.97°". */
+const degrees = (value: number) => `${value < 0 ? "\u2212" : "+"}${Math.abs(value).toFixed(2)}°`;
+
+/**
+ * One live readout tile. Labels sit on the left and values on the right edge, with tabular digits
+ * and no wrapping, so values changing every frame never move anything else on the page.
+ */
+function Readout({ title, rows }: { title: React.ReactNode; rows: [string, React.ReactNode][] }) {
   return (
-    <span className="inline-flex items-center gap-1.5">
-      <Dot color={color} hollow={!up} />
-      <span>
-        <b className="font-medium">{label}:</b> {up ? "yes" : "no"} <span className="text-muted-foreground">({el.toFixed(2)}° high, {extra})</span>
-      </span>
-    </span>
+    <div className="grid content-start gap-0.5 rounded-2xl px-3 py-2 text-xs whitespace-nowrap ring-1 ring-foreground/10 sm:text-sm">
+      <div className="flex items-center gap-1.5 font-medium">{title}</div>
+      {rows.map(([label, value]) => (
+        <div key={label} className="flex justify-between gap-3">
+          <span className="text-muted-foreground">{label}</span>
+          <span className="tabular-nums">{value}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -73,6 +83,7 @@ export function MissionView({
   }, [isPlaying, last, setIndex]);
 
   const t = s.t[index];
+  const totalDays = Number(((scenario.end - scenario.start) / 86400).toFixed(1));
   const sunUp = s.sun_el[index] > horizonAt(scenario, s.sun_az[index]);
   const earthUp = s.earth_el[index] > horizonAt(scenario, s.earth_az[index]);
 
@@ -113,20 +124,38 @@ export function MissionView({
               className="flex-1"
             />
           </div>
-          <div className="grid gap-1 text-sm sm:grid-cols-[auto_1fr] sm:gap-x-6">
-            <span className="text-muted-foreground tabular-nums">
-              Day {((t - scenario.start) / 86400).toFixed(1)} · {formatUtc(t)} (+{formatDuration((t - scenario.start) / 3600)})
-            </span>
-            <span className="flex flex-wrap gap-x-4 gap-y-1">
-              <Status label="Sunlight" color="var(--sun)" up={sunUp} el={s.sun_el[index]} extra={`${Math.round(s.sun_disk[index] * 100)}% of disk`} />
-              <Status
-                label="Earth contact"
-                color="var(--earth)"
-                up={earthUp}
-                el={s.earth_el[index]}
-                extra={`Earth ${Math.round(s.earth_lit[index] * 100)}% lit`}
+          <div className="grid max-w-4xl grid-cols-2 gap-2 sm:grid-cols-3">
+            <div className="col-span-2 sm:col-span-1">
+              <Readout
+                title="Mission time"
+                rows={[
+                  ["Day", `${((t - scenario.start) / 86400).toFixed(1)} of ${totalDays}`],
+                  ["UTC", formatUtc(t).replace(" UTC", "")],
+                ]}
               />
-            </span>
+            </div>
+            <Readout
+              title={
+                <>
+                  <Dot color="var(--sun)" hollow={!sunUp} /> Sunlight: {sunUp ? "yes" : "no"}
+                </>
+              }
+              rows={[
+                ["Sun height", degrees(s.sun_el[index])],
+                ["Disk visible", `${Math.round(s.sun_disk[index] * 100)}%`],
+              ]}
+            />
+            <Readout
+              title={
+                <>
+                  <Dot color="var(--earth)" hollow={!earthUp} /> Earth contact: {earthUp ? "yes" : "no"}
+                </>
+              }
+              rows={[
+                ["Earth height", degrees(s.earth_el[index])],
+                ["Earth lit", `${Math.round(s.earth_lit[index] * 100)}%`],
+              ]}
+            />
           </div>
           <Tabs defaultValue="lander">
             <TabsList className="w-full sm:w-fit">

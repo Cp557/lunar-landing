@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 
 import { CompareTable } from "./components/compare";
 import { LandingWindowsPanel } from "./components/landing-windows";
-import { Results } from "./components/results";
+import { Answer, Details } from "./components/results";
 import { CUSTOM, type FormState, ScenarioForm, toQuery } from "./components/scenario-form";
 import { MissionView } from "./components/mission-view";
 import { SouthPoleMap } from "./components/south-pole-map";
@@ -96,57 +96,72 @@ export function Navigator() {
 
   const inCompare = scenario !== null && compare.includes(scenario);
 
+  const dim = `transition-opacity ${busy ? "opacity-60" : ""}`;
+
   return (
-    <div className="grid gap-4 lg:grid-cols-[340px_1fr] xl:grid-cols-[400px_1fr]">
-      <aside className="space-y-3">
-        <ScenarioForm sites={sites} form={form} onChange={setForm} onSubmit={() => evaluate(form)} busy={busy} />
-        {scenario && (
-          <Button
-            variant="outline"
-            className="w-full"
-            disabled={inCompare || compare.length >= MAX_COMPARE}
-            onClick={() => setCompare([...compare, scenario])}
-          >
-            <HugeiconsIcon icon={inCompare ? Tick02Icon : Add01Icon} strokeWidth={2} data-icon="inline-start" />
-            {inCompare ? "Added to comparison" : compare.length >= MAX_COMPARE ? "Comparison full (3)" : "Add to comparison"}
-          </Button>
-        )}
-        <SouthPoleMap
-          sites={sites.filter((s) => s.group === "south_pole")}
-          current={scenario ? scenario.site : null}
-          subsolar={scenario ? { lat: scenario.series.subsolar_lat[index], lon: scenario.series.subsolar_lon[index] } : null}
-          onPickSite={(id) => run({ siteId: id })}
-          onPickPoint={(lat, lon) => run({ siteId: CUSTOM, lat: lat.toFixed(4), lon: lon.toFixed(4) })}
-        />
-      </aside>
-      <div className="min-w-0 space-y-4">
-        {error && (
-          <Alert variant="destructive">
-            <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} />
-            <AlertTitle>Couldn&apos;t evaluate this landing</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        {!scenario && !error && <p className="text-muted-foreground">Loading…</p>}
-        {compare.length > 0 && <CompareTable scenarios={compare} onRemove={(i) => setCompare(compare.filter((_, j) => j !== i))} />}
-        {scenario && (
-          <div className={`space-y-4 transition-opacity ${busy ? "opacity-60" : ""}`}>
-            <Results scenario={scenario} />
-            <MissionView
-              key={`${scenario.site.lat},${scenario.site.lon},${scenario.start},${scenario.end}`}
-              scenario={scenario}
-              sites={sites}
-              index={index}
-              setIndex={setIndex}
-            />
-            <LandingWindowsPanel
-              key={`${scenario.site.lat},${scenario.site.lon}`}
-              query={queryFor(scenario)}
-              onPick={pickDate}
-            />
-          </div>
-        )}
+    <div className="space-y-4">
+      {/*
+        Hero: the big map on the left (its column is as wide as the map square, --map-size), the form and
+        the answer on the right. Below lg it stacks as form, map, answer.
+      */}
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,calc(var(--map-size)+2rem))_minmax(340px,1fr)] lg:grid-rows-[auto_1fr]">
+        <div className="min-w-0 space-y-3 lg:col-start-2">
+          <ScenarioForm sites={sites} form={form} onChange={setForm} onSubmit={() => evaluate(form)} busy={busy} />
+          {scenario && (
+            <Button
+              variant="outline"
+              className="w-full"
+              disabled={inCompare || compare.length >= MAX_COMPARE}
+              onClick={() => setCompare([...compare, scenario])}
+            >
+              <HugeiconsIcon icon={inCompare ? Tick02Icon : Add01Icon} strokeWidth={2} data-icon="inline-start" />
+              {inCompare ? "Added to comparison" : compare.length >= MAX_COMPARE ? "Comparison full (3)" : "Add to comparison"}
+            </Button>
+          )}
+        </div>
+        <div className="min-w-0 lg:col-start-1 lg:row-[1/span_2]">
+          <SouthPoleMap
+            sites={sites.filter((s) => s.group === "south_pole")}
+            current={scenario ? scenario.site : null}
+            subsolar={scenario ? { lat: scenario.series.subsolar_lat[index], lon: scenario.series.subsolar_lon[index] } : null}
+            onPickSite={(id) => run({ siteId: id })}
+            onPickPoint={(lat, lon) => run({ siteId: CUSTOM, lat: lat.toFixed(4), lon: lon.toFixed(4) })}
+          />
+        </div>
+        <div className="min-w-0 space-y-3 lg:col-start-2">
+          {error && (
+            <Alert variant="destructive">
+              <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} />
+              <AlertTitle>Couldn&apos;t evaluate this landing</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          {!scenario && !error && <p className="text-muted-foreground">Loading…</p>}
+          {scenario && (
+            <div className={dim}>
+              <Answer scenario={scenario} />
+            </div>
+          )}
+        </div>
       </div>
+      {compare.length > 0 && <CompareTable scenarios={compare} onRemove={(i) => setCompare(compare.filter((_, j) => j !== i))} />}
+      {scenario && (
+        <div className={`space-y-4 ${dim}`}>
+          <Details scenario={scenario} />
+          <MissionView
+            key={`${scenario.site.lat},${scenario.site.lon},${scenario.start},${scenario.end}`}
+            scenario={scenario}
+            sites={sites}
+            index={index}
+            setIndex={setIndex}
+          />
+          <LandingWindowsPanel
+            key={`${scenario.site.lat},${scenario.site.lon}`}
+            query={queryFor(scenario)}
+            onPick={pickDate}
+          />
+        </div>
+      )}
     </div>
   );
 }

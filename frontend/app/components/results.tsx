@@ -91,9 +91,9 @@ function Stat({ label, value, hint, tip }: { label: string; value: string; hint?
   );
 }
 
-/** The answer to "how long will we have sunlight and contact with Earth?" for one scenario. */
-export function Results({ scenario }: { scenario: Scenario }) {
-  const { sun, earth, both_percent, solar_w_m2 } = scenario.metrics;
+/** The answer to "how long will we have sunlight and contact with Earth?": brief and headline cards. */
+export function Answer({ scenario }: { scenario: Scenario }) {
+  const { sun, earth } = scenario.metrics;
   const { brief } = scenario;
   const days = (scenario.end - scenario.start) / 86400;
   return (
@@ -117,7 +117,7 @@ export function Results({ scenario }: { scenario: Scenario }) {
           <p className="text-base leading-relaxed">{brief.summary}</p>
         </CardContent>
       </Card>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
         <Headline
           label="Sunlight · power"
           tip={GLOSSARY.sunlight}
@@ -139,6 +139,15 @@ export function Results({ scenario }: { scenario: Scenario }) {
           text={headline(earth, { up: "Earth in view", down: "Earth hidden", rises: "Earthrise", sets: "Earthset" })}
         />
       </div>
+    </section>
+  );
+}
+
+/** The numbers behind the answer, full width under the map. */
+export function Details({ scenario }: { scenario: Scenario }) {
+  const { sun, earth, both_percent, solar_w_m2 } = scenario.metrics;
+  return (
+    <section className="space-y-3">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Stat label="Sunlight" tip={GLOSSARY.sunlight} value={formatPercent(sun.visible_percent)} hint={formatDuration(sun.visible_hours)} />
         <Stat label="Longest darkness" tip={GLOSSARY.longestDark} value={formatDuration(sun.longest_hidden_hours)} />

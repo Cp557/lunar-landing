@@ -72,6 +72,10 @@ export function LanderView({ scenario, index }: { scenario: Scenario; index: num
   const x = (az: number) => width / 2 + wrap(az - center) * pxPerDeg;
   const y = (el: number) => HEIGHT - (el - bottom) * pxPerDeg * stretch;
   const inView = (az: number) => Math.abs(wrap(az - center)) <= FOV_DEG / 2 + 5;
+  // A body far below the horizon is under the bottom of the view: pin its label there and say how far down it is.
+  const labelY = (el: number, r: number) => Math.min(y(el) - r - 8, HEIGHT - 26);
+  const hiddenLabel = (name: string, el: number) =>
+    el < bottom ? `${name} ↓ ${Math.round(-el)}° below the horizon` : `${name} (behind terrain)`;
 
   const skyline: string[] = [];
   for (let d = -FOV_DEG / 2 - 1; d <= FOV_DEG / 2 + 1; d += 0.5) {
@@ -151,13 +155,13 @@ export function LanderView({ scenario, index }: { scenario: Scenario; index: num
             <circle cx={x(earth.az)} cy={y(earth.el)} r={earthR} fill="none" stroke={COLORS.earth} strokeDasharray="3 3" opacity={0.8} />
           )}
           {inView(sun.az) && (
-            <text x={x(sun.az)} y={y(sun.el) - sunR - 8} textAnchor="middle" fill={COLORS.text} fontSize={12} fontWeight={600}>
-              {sunVisible ? "Sun" : "Sun (behind terrain)"}
+            <text x={x(sun.az)} y={labelY(sun.el, sunR)} textAnchor="middle" fill={COLORS.text} fontSize={12} fontWeight={600}>
+              {sunVisible ? "Sun" : hiddenLabel("Sun", sun.el)}
             </text>
           )}
           {inView(earth.az) && (
-            <text x={x(earth.az)} y={y(earth.el) - earthR - 8} textAnchor="middle" fill={COLORS.text} fontSize={12} fontWeight={600}>
-              {earthVisible ? `Earth · ${Math.round(earth.lit * 100)}% lit` : "Earth (behind terrain)"}
+            <text x={x(earth.az)} y={labelY(earth.el, earthR)} textAnchor="middle" fill={COLORS.text} fontSize={12} fontWeight={600}>
+              {earthVisible ? `Earth · ${Math.round(earth.lit * 100)}% lit` : hiddenLabel("Earth", earth.el)}
             </text>
           )}
           {COMPASS.filter(([az]) => inView(az)).map(([az, label]) => (
