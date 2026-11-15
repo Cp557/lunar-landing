@@ -6,7 +6,6 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 import type { Site } from "../lib/types";
 
-const HEIGHT = 360;
 const KIND_COLOR: Record<string, string> = { reference: "#f5b544", candidate: "#4ea8f5", landed: "#7bd389", planned: "#c4b5fd" };
 
 /** Moon-fixed lat/lon (degrees) -> three.js position on a unit sphere (matches SphereGeometry's texture mapping). */
@@ -39,11 +38,11 @@ export default function MoonGlobe({
     if (!el) return;
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(el.clientWidth, HEIGHT);
+    renderer.setSize(el.clientWidth, el.clientHeight);
     el.append(renderer.domElement);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(35, el.clientWidth / HEIGHT, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(35, el.clientWidth / el.clientHeight, 0.1, 100);
     camera.position.copy(toScene(-55, site.lon, 3.6));
     const texture = new THREE.TextureLoader().load("/moon-texture.jpg", () => renderer.render(scene, camera));
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -67,9 +66,9 @@ export default function MoonGlobe({
     controls.addEventListener("change", () => renderer.render(scene, camera));
 
     const resize = new ResizeObserver(() => {
-      camera.aspect = el.clientWidth / HEIGHT;
+      camera.aspect = el.clientWidth / el.clientHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(el.clientWidth, HEIGHT);
+      renderer.setSize(el.clientWidth, el.clientHeight);
       renderer.render(scene, camera);
     });
     resize.observe(el);
@@ -95,12 +94,6 @@ export default function MoonGlobe({
   }, [site.lat, site.lon, subsolar.lat, subsolar.lon]);
 
   return (
-    <div className="grid gap-2">
-      <div ref={host} className="w-full cursor-grab overflow-hidden rounded-3xl bg-[#02040a] active:cursor-grabbing" style={{ height: HEIGHT }} />
-      <p className="text-xs text-muted-foreground">
-        Lit by the Sun at the time on the slider, so the day/night line is real. White dot = this site. Drag to rotate,
-        scroll to zoom. Texture: NASA&apos;s Scientific Visualization Studio (CGI Moon Kit, LRO data).
-      </p>
-    </div>
+    <div ref={host} className="size-full cursor-grab overflow-hidden rounded-3xl bg-[#02040a] active:cursor-grabbing" />
   );
 }

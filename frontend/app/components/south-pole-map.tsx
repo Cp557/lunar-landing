@@ -1,10 +1,12 @@
 "use client";
 
+import { ContrastIcon, EarthIcon, MountainIcon, Sun03Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { formatLatLon } from "../lib/format";
 import { ShadowLayer } from "./shadow-layer";
@@ -51,11 +53,11 @@ const tag = "absolute rounded-full bg-background/75 px-1.5 text-[10px] text-fore
 // Precomputed by backend/scripts/build_heatmap.py over the same square as the relief map.
 type Heatmap = { grid: number; period: string; scale_max: { sun: number; earth: number }; sun: number[]; earth: number[] };
 type Layer = "terrain" | "sun" | "earth" | "shadows";
-const LAYERS: { id: Layer; label: string; image?: string; gradient?: string }[] = [
-  { id: "terrain", label: "Terrain" },
-  { id: "sun", label: "Sunlight %", image: "/sunlight-map.png", gradient: "linear-gradient(to right, #0b1d3a, #ffd27a)" },
-  { id: "earth", label: "Earth contact %", image: "/earth-map.png", gradient: "linear-gradient(to right, #0b1d3a, #8fd3ff)" },
-  { id: "shadows", label: "Shadows now" },
+const LAYERS: { id: Layer; label: string; icon: typeof Sun03Icon; image?: string; gradient?: string }[] = [
+  { id: "terrain", label: "Terrain", icon: MountainIcon },
+  { id: "sun", label: "Sunlight", icon: Sun03Icon, image: "/sunlight-map.png", gradient: "linear-gradient(to right, #0b1d3a, #ffd27a)" },
+  { id: "earth", label: "Earth contact", icon: EarthIcon, image: "/earth-map.png", gradient: "linear-gradient(to right, #0b1d3a, #8fd3ff)" },
+  { id: "shadows", label: "Shadows", icon: ContrastIcon },
 ];
 
 type MapProps = {
@@ -104,13 +106,17 @@ export function SouthPoleMap({ sites, current, subsolar, onPickSite, onPickPoint
     <Card size="sm">
       <CardHeader className="flex flex-wrap items-center justify-between gap-2">
         <CardTitle>South pole map</CardTitle>
-        <div className="flex flex-wrap gap-1" role="group" aria-label="Map layer">
-          {LAYERS.map((l) => (
-            <Button key={l.id} variant={layer === l.id ? "secondary" : "ghost"} size="xs" onClick={() => setLayer(l.id)} aria-pressed={layer === l.id}>
-              {l.label}
-            </Button>
-          ))}
-        </div>
+        {/* Same segmented control as the sky-view tabs, so it reads as a switch. */}
+        <Tabs value={layer} onValueChange={(v) => setLayer(v as Layer)} className="max-w-full">
+          <TabsList aria-label="Map layer" className="max-w-full overflow-x-auto">
+            {LAYERS.map((l) => (
+              <TabsTrigger key={l.id} value={l.id} className="px-2 text-xs sm:px-3 sm:text-sm">
+                <HugeiconsIcon icon={l.icon} strokeWidth={2} className="max-sm:hidden" />
+                {l.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
       </CardHeader>
       <CardContent className="grid gap-2">
         <span className="truncate text-xs text-muted-foreground tabular-nums">
@@ -191,7 +197,7 @@ function LayerNote({ layer, heat }: { layer: (typeof LAYERS)[number]; heat: Heat
   if (layer.id === "terrain")
     return <p>Shaded relief from NASA LOLA laser-altimeter elevation data, 80°S to the pole.</p>;
   if (layer.id === "shadows")
-    return <p>Terrain shadows at the time on the sky slider below; press play there to watch them move. Approximate (720 m terrain).</p>;
+    return <p>Terrain shadows at the time on the mission slider below; press play there to watch them move. Approximate (720 m terrain).</p>;
   const max = heat?.scale_max[layer.id as "sun" | "earth"];
   return (
     <div className="grid gap-1">

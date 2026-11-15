@@ -100,7 +100,9 @@ export function Answer({ scenario }: { scenario: Scenario }) {
     <section className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          {scenario.site.name} ({formatLatLon(scenario.site.lat, scenario.site.lon)}) · landing {formatUtc(scenario.start)} ·{" "}
+          {/* Custom points have no id and are named by their raw coordinates, so show those only once. */}
+          {scenario.site.id ? `${scenario.site.name} (${formatLatLon(scenario.site.lat, scenario.site.lon)})` : `Custom point (${formatLatLon(scenario.site.lat, scenario.site.lon)})`}{" "}
+          · landing {formatUtc(scenario.start)} ·{" "}
           {formatDuration(days * 24)} mission
         </p>
         <Button variant="ghost" size="sm" onClick={() => downloadCsv(scenario)}>

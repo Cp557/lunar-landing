@@ -46,7 +46,7 @@ We used Claude (Anthropic) throughout: it summarized the challenge and rules, pr
 - Libraries: Next.js, React, Tailwind CSS, Observable Plot, FastAPI, numpy (licenses in README)
 
 ## Demo script (≤ 30 seconds)
-1. **0–5 s** — South-pole map with "Shadows now" on, press Play so the shadows sweep around the pole: "At the Moon's south pole the Sun barely clears the horizon. One ridge decides whether a lander has power."
+1. **0–5 s** — South-pole map with the "Shadows" layer on, press Play (just below the map) so the shadows sweep around the pole: "At the Moon's south pole the Sun barely clears the horizon. One ridge decides whether a lander has power."
 2. **5–14 s** — Click Connecting Ridge C1 on the map, Dec 1 2026: "Here, the Sun stays up the whole mission… but Earth is hidden for 12 days."
 3. **14–21 s** — Add it to the comparison, click the Malapert Massif region, add it: "Another candidate site, same dates — a completely different answer."
 4. **21–27 s** — Scan the next 12 months: "Delayed? Find the best landing day in seconds."

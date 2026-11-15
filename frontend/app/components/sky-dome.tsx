@@ -25,7 +25,7 @@ export function SkyDome({ scenario, index }: { scenario: Scenario; index: number
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const observer = new ResizeObserver(() => setSize(Math.min(el.clientWidth, 420)));
+    const observer = new ResizeObserver(() => setSize(Math.min(el.clientWidth, 360)));
     observer.observe(el);
     return () => observer.disconnect();
   }, []);

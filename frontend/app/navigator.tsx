@@ -92,7 +92,14 @@ export function Navigator() {
     },
     [form, evaluate],
   );
-  const pickDate = useCallback((start: number) => run({ start: toInputValue(start) }), [run]);
+  const pickDate = useCallback(
+    (start: number) => {
+      run({ start: toInputValue(start) });
+      // The best-dates list is far down the page: bring the answer it changes into view.
+      document.getElementById("answer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+    [run],
+  );
 
   const inCompare = scenario !== null && compare.includes(scenario);
 
@@ -139,7 +146,7 @@ export function Navigator() {
           )}
           {!scenario && !error && <p className="text-muted-foreground">Loading…</p>}
           {scenario && (
-            <div className={dim}>
+            <div id="answer" className={`scroll-mt-4 ${dim}`}>
               <Answer scenario={scenario} />
             </div>
           )}

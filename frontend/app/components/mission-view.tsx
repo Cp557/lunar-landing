@@ -20,8 +20,12 @@ import { ElevationChart, TimelineChart } from "./timeline-chart";
 // three.js is large: load the globe only when its tab is opened, and never on the server.
 const MoonGlobe = dynamic(() => import("./moon-globe"), {
   ssr: false,
-  loading: () => <p className="text-sm text-muted-foreground">Loading globe…</p>,
+  loading: () => <p className="grid h-full place-items-center text-sm text-muted-foreground">Loading globe…</p>,
 });
+
+// Every sky view sits in one grid cell (inactive ones invisible), so the card is always as tall as the
+// tallest view and switching tabs never moves the page below.
+const SKY_PANEL = "grid grid-cols-1 content-start gap-2 pt-2 data-[state=inactive]:invisible";
 
 const FRAME_MS = 80;
 const FRAMES_PER_MISSION = 150; // about 12 s to play a whole mission
@@ -180,6 +184,8 @@ export function MissionTimeline({
 /** The sky around the lander at the time on the mission slider: 360° chart, round sky map, 3D globe. */
 export function SkyViews({ scenario, sites, index }: { scenario: Scenario; sites: Site[]; index: number }) {
   const s = scenario.series;
+  const [view, setView] = useState("panorama");
+  const [globeOpened, setGlobeOpened] = useState(false); // three.js loads only once the Globe tab is opened
   return (
     <Card>
       <CardHeader>
@@ -190,7 +196,13 @@ export function SkyViews({ scenario, sites, index }: { scenario: Scenario; sites
         </CardDescription>
       </CardHeader>
       <CardContent className="grid min-w-0 gap-3">
-        <Tabs defaultValue="panorama">
+        <Tabs
+          value={view}
+          onValueChange={(v) => {
+            setView(v);
+            if (v === "globe") setGlobeOpened(true);
+          }}
+        >
           <TabsList className="w-full sm:w-fit">
             <TabsTrigger value="panorama" className="px-2 text-xs sm:px-3 sm:text-sm">
               360° chart
@@ -202,30 +214,41 @@ export function SkyViews({ scenario, sites, index }: { scenario: Scenario; sites
               Globe
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="panorama" className="grid gap-2 pt-2">
-            <SkyChart scenario={scenario} index={index} />
-            <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <li className="flex items-center gap-1.5">
-                <Dot color={COLORS.sun} /> Sun&apos;s path (visible)
-              </li>
-              <li className="flex items-center gap-1.5">
-                <Dot color={COLORS.earth} /> Earth&apos;s path (visible)
-              </li>
-              <li className="flex items-center gap-1.5">
-                <Dot color={COLORS.muted} /> hidden behind terrain
-              </li>
-              <li className="flex items-center gap-1.5">
-                <span className="inline-block h-2.5 w-4 rounded-sm" style={{ background: COLORS.terrain }} /> terrain skyline
-              </li>
-              <li>Heights are stretched so the low skyline is easy to see.</li>
-            </ul>
-          </TabsContent>
-          <TabsContent value="dome" className="pt-2">
-            <SkyDome scenario={scenario} index={index} />
-          </TabsContent>
-          <TabsContent value="globe" className="pt-2">
-            <MoonGlobe sites={sites} site={scenario.site} subsolar={{ lat: s.subsolar_lat[index], lon: s.subsolar_lon[index] }} />
-          </TabsContent>
+          {/* grid-cols-1 (minmax(0, 1fr)) so a wide globe canvas can't hold the column open after a resize. */}
+          <div className="grid grid-cols-1 *:col-start-1 *:row-start-1">
+            <TabsContent value="panorama" forceMount className={SKY_PANEL}>
+              <SkyChart scenario={scenario} index={index} />
+              <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <li className="flex items-center gap-1.5">
+                  <Dot color={COLORS.sun} /> Sun&apos;s path (visible)
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <Dot color={COLORS.earth} /> Earth&apos;s path (visible)
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <Dot color={COLORS.muted} /> hidden behind terrain
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <span className="inline-block h-2.5 w-4 rounded-sm" style={{ background: COLORS.terrain }} /> terrain skyline
+                </li>
+                <li>Heights are stretched so the low skyline is easy to see.</li>
+              </ul>
+            </TabsContent>
+            <TabsContent value="dome" forceMount className={SKY_PANEL}>
+              <SkyDome scenario={scenario} index={index} />
+            </TabsContent>
+            <TabsContent value="globe" forceMount className={SKY_PANEL}>
+              <div className="h-[360px]">
+                {globeOpened && (
+                  <MoonGlobe sites={sites} site={scenario.site} subsolar={{ lat: s.subsolar_lat[index], lon: s.subsolar_lon[index] }} />
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Lit by the Sun at the time on the mission slider, so the day/night line is real. White dot = this site. Drag
+                to rotate, scroll to zoom. Texture: NASA&apos;s Scientific Visualization Studio (CGI Moon Kit, LRO data).
+              </p>
+            </TabsContent>
+          </div>
         </Tabs>
       </CardContent>
     </Card>
