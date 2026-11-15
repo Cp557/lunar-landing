@@ -12,7 +12,7 @@ Team Wise Tortoise's project for the [NASA Space Apps Challenge 2026: Lunar Land
 
 ## What it does
 
-Pick a landing site (curated south-pole, near-side and far-side sites, or your own coordinates), a landing date and a mission length. The app answers:
+Pick a landing site (29 curated sites with sources, including NASA's 9 Artemis III candidate regions; a click on the south-pole map; or typed coordinates), a landing date and a mission length. The app answers:
 
 - **Headline:** is the Sun up at touchdown, and how long until sunset (or sunrise)? Is Earth in view, and how long until Earthset?
 - **Mission summary:** % of the mission sunlit, % with Earth contact, % with both.
@@ -21,6 +21,8 @@ Pick a landing site (curated south-pole, near-side and far-side sites, or your o
 - **Timeline:** when the site is sunlit and when Earth is visible, and how far above the horizon each is.
 - **Comparison:** up to three scenarios side by side.
 - **Best landing dates:** the same site and mission length for every landing day over the next year.
+- **Solar power:** average sunlight on a vertical panel turned to the Sun vs a flat panel.
+- **Shareable links:** the URL always reproduces the current scenario.
 
 ## How it works
 

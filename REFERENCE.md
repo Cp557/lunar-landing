@@ -8,8 +8,9 @@ Canonical reference for how this repo is built and run. Update it whenever archi
 vercel.json        Vercel Services config + public routing
 frontend/          Next.js 16 app (App Router, TypeScript, Tailwind v4, Observable Plot)
   app/page.tsx         Page shell (header, method section, footer); app/icon.svg is the team logo
-  app/navigator.tsx    Client component: loads sites, runs scenarios, lays out results
-  app/components/      Scenario form, results (headline + stats), sky chart, timeline charts
+  app/navigator.tsx    Client component: loads sites, runs scenarios, lays out results, syncs the URL
+  app/components/      Scenario form, south-pole map, results, sky chart, timelines, comparison, best dates, method
+  public/south-pole-map.png  Shaded relief 80°S–90°S (built by backend/scripts/build_basemap.py)
   app/lib/             API client + types, formatting helpers, chart colors
   public/              Static assets (logo)
 backend/           FastAPI app, managed with uv
@@ -33,6 +34,7 @@ backend/           FastAPI app, managed with uv
     fetch_validation.py  Builds tests/fixtures/horizons_topocentric.json
     build_terrain.py     Builds data/terrain/ldem_75s_240m.npz from raw-data
     build_horizons.py    Builds data/horizons.json from raw-data (run with -m)
+    build_basemap.py     Builds frontend/public/south-pole-map.png from the 240 m map (run with -m)
   tests/               pytest suite (+ fixtures)
   pyproject.toml       Python deps; uv.lock pins them
 raw-data/          Git-ignored downloads (LOLA LDEM_75S_120M, LDEM_85S_20M)
@@ -88,6 +90,12 @@ The browser calls the backend on the same origin (`fetch("/api/...")`), so there
 
 ### Curated sites (`data/sites.json`)
 29 sites (south pole incl. the 9 NASA Artemis III candidate regions, Apollo and other near-side landings, far side), each with a citation. Artemis III region centers are approximate (means of candidate sites in Wueller et al. 2026, Table A1); NASA published only a map. Coordinates were researched with AI assistance from the cited sources.
+
+## Frontend behavior
+
+- **Shareable URLs:** after each successful evaluation the page URL is replaced with `?site=<id>` or `?lat=…&lon=…`, plus `start=YYYY-MM-DDTHH:mm` (UTC) and `days`. On load these parameters prefill the form; missing ones fall back to the defaults (first south-pole site, 2026-12-01 00:00 UTC, 14 days).
+- **South-pole map:** `south-pole-map.png` is 848 × 848 px, polar stereographic centered on the pole, half-width 305,280 m (≈80°S at the edge midpoints), image up = 0°E (toward Earth), 90°E to the right. The constants in `components/south-pole-map.tsx` must match `scripts/build_basemap.py`. Clicking a dot selects a curated site; clicking elsewhere evaluates that point as custom coordinates.
+- Charts are Observable Plot SVGs re-rendered on container resize (`components/plot-figure.tsx`), each with an `aria-label`.
 
 ## Invariants
 
