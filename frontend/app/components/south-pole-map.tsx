@@ -9,30 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { formatLatLon } from "../lib/format";
+import { fromMap, toMap } from "../lib/polar";
 import { ShadowLayer } from "./shadow-layer";
 import type { Site } from "../lib/types";
-
-// Must match backend/scripts/build_basemap.py: polar stereographic, centered on the pole,
-// image up = 0° E (toward Earth), half-width in meters.
-const HALF_EXTENT_M = 305_280;
-const R_M = 1_737_400;
-const DEG = Math.PI / 180;
-
-/** Map position (0..1 fractions from the top-left) of a southern latitude/longitude, or null if off the map. */
-function toMap(lat: number, lon: number): [number, number] | null {
-  if (lat >= 0) return null;
-  const r = 2 * R_M * Math.tan(((90 + lat) * DEG) / 2);
-  const fx = 0.5 + (r * Math.sin(lon * DEG)) / (2 * HALF_EXTENT_M);
-  const fy = 0.5 - (r * Math.cos(lon * DEG)) / (2 * HALF_EXTENT_M);
-  return fx >= 0 && fx <= 1 && fy >= 0 && fy <= 1 ? [fx, fy] : null;
-}
-
-function fromMap(fx: number, fy: number): { lat: number; lon: number } {
-  const x = (fx - 0.5) * 2 * HALF_EXTENT_M;
-  const y = (0.5 - fy) * 2 * HALF_EXTENT_M;
-  const lat = -90 + (2 * Math.atan(Math.hypot(x, y) / (2 * R_M))) / DEG;
-  return { lat, lon: Math.atan2(x, y) / DEG };
-}
 
 const KIND_COLOR: Record<string, string> = {
   reference: "var(--sun)",

@@ -16,6 +16,7 @@ import { TimelineChart } from "./timeline-chart";
 // three.js is large: load the 3D views only when their tab is opened, and never on the server.
 const loading = () => <p className="grid h-full place-items-center text-sm text-muted-foreground">Loading 3D view…</p>;
 const MoonGlobe = dynamic(() => import("./moon-globe"), { ssr: false, loading });
+const SouthPole3D = dynamic(() => import("./south-pole-3d"), { ssr: false, loading });
 
 // Every view sits in one grid cell (inactive ones invisible), so the card is always as tall as the
 // tallest view and switching tabs never moves the page below. grid-cols-1 (minmax(0, 1fr)) so a
@@ -126,6 +127,9 @@ export function MissionViews({ scenario, sites, clock }: { scenario: Scenario; s
             <TabsTrigger value="skyline" className={TAB}>
               360° skyline
             </TabsTrigger>
+            <TabsTrigger value="pole3d" className={TAB}>
+              3D south pole
+            </TabsTrigger>
             <TabsTrigger value="globe" className={TAB}>
               Globe
             </TabsTrigger>
@@ -148,6 +152,22 @@ export function MissionViews({ scenario, sites, clock }: { scenario: Scenario; s
                 </li>
                 <li>Heights are stretched so the low skyline is easy to see.</li>
               </ul>
+            </TabsContent>
+            <TabsContent value="pole3d" forceMount className={VIEW_PANEL}>
+              <div className="h-[360px]">
+                {opened.has("pole3d") && (
+                  <SouthPole3D
+                    site={scenario.site}
+                    subsolar={{ lat: s.subsolar_lat[index], lon: s.subsolar_lon[index] }}
+                    subearth={{ lat: s.subearth_lat[index], lon: s.subearth_lon[index] }}
+                  />
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                80°S to the pole from NASA LOLA elevations, lit by the Sun at the time on the slider with the same terrain
+                shadows as the map. Glow = the Sun&apos;s direction, blue dot = Earth&apos;s, white pin = this site. Heights
+                ×5. Drag to orbit, scroll to zoom.
+              </p>
             </TabsContent>
             <TabsContent value="globe" forceMount className={VIEW_PANEL}>
               <div className="h-[360px]">

@@ -2,10 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// Must match backend/scripts/build_basemap.py (south-pole-heights.bin).
-const SIZE = 848;
-const HALF_EXTENT_M = 305_280;
-const R_M = 1_737_400;
+import { HALF_EXTENT_M, HEIGHTS_SIZE as SIZE, R_M } from "../lib/polar";
 
 const VERTEX = `#version 300 es
 in vec2 p;
@@ -15,17 +12,17 @@ void main() {
   gl_Position = vec4(p, 0.0, 1.0);
 }`;
 
-// For every map pixel, march a ray from 2 m above the ground toward the Sun (Moon-fixed unit
-// vector) and check whether the terrain rises above it. Positions are exact on the 1737.4 km
-// sphere (polar stereographic, same as the relief map), so the Moon's curvature is included.
-const FRAGMENT = `#version 300 es
-precision highp float;
-uniform sampler2D heights;
+/**
+ * GLSL shared by the 2D shadow layer and the 3D south pole: is the Sun hidden by terrain for a lander
+ * 2 m above the ground at map position `uv` (0..1 from the top-left)? A ray is marched toward the Sun
+ * (Moon-fixed unit vector `sunDir`) across the heights texture; positions are exact on the 1737.4 km
+ * sphere (polar stereographic, same as the relief map), so the Moon's curvature is included.
+ */
+export const SHADOW_GLSL = `
+uniform highp sampler2D heights;
 uniform vec3 sunDir;
 uniform float halfExtent;
 uniform float R;
-in vec2 uv;
-out vec4 color;
 
 vec3 toSphere(vec2 m) {  // map meters (x right, y up = toward 0°E) -> Moon-fixed unit vector
   float rho2 = dot(m, m) / (4.0 * R * R);
@@ -35,7 +32,7 @@ vec2 toUv(vec3 u) {
   float k = 2.0 * R / (1.0 - u.z);
   return vec2(k * u.y / (2.0 * halfExtent) + 0.5, 0.5 - k * u.x / (2.0 * halfExtent));
 }
-void main() {
+bool inShadow(vec2 uv) {
   vec2 m = vec2((uv.x - 0.5) * 2.0 * halfExtent, (0.5 - uv.y) * 2.0 * halfExtent);
   vec3 P = toSphere(m) * (R + texture(heights, uv).r + 2.0);
   float d = 300.0;
@@ -43,11 +40,22 @@ void main() {
     vec3 Q = P + sunDir * d;
     float rq = length(Q);
     vec2 t = toUv(Q / rq);
-    if (t.x < 0.0 || t.x > 1.0 || t.y < 0.0 || t.y > 1.0) break;
-    if (R + texture(heights, t).r > rq) { color = vec4(0.0, 0.01, 0.06, 0.8); return; }
+    if (t.x < 0.0 || t.x > 1.0 || t.y < 0.0 || t.y > 1.0) return false;
+    if (R + texture(heights, t).r > rq) return true;
     d *= 1.065;
   }
-  color = vec4(1.0, 0.85, 0.5, 0.08);  // faint warm tint where sunlit
+  return false;
+}
+`;
+
+const FRAGMENT = `#version 300 es
+precision highp float;
+${SHADOW_GLSL}
+in vec2 uv;
+out vec4 color;
+void main() {
+  // Dark navy where shadowed, a faint warm tint where sunlit.
+  color = inShadow(uv) ? vec4(0.0, 0.01, 0.06, 0.8) : vec4(1.0, 0.85, 0.5, 0.08);
 }`;
 
 type Gl = { gl: WebGL2RenderingContext; sunDir: WebGLUniformLocation | null };
