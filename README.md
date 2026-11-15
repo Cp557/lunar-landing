@@ -20,7 +20,7 @@ Pick a landing site (29 curated sites with sources, including NASA's 9 Artemis I
 - **Sky view:** the real terrain horizon with the Sun's and Earth's paths over the mission.
 - **Timeline:** when the site is sunlit and when Earth is visible, and how far above the horizon each is.
 - **Mission brief:** one plain-language sentence plus Good/Fair/Poor ratings for power and communications.
-- **Mission playback:** scrub or play through the mission and watch the Sun circle the horizon and Earth rise and set, in three views: a **360° chart** of the skyline with the Sun's and Earth's paths, a round **sky map**, and a **3D Moon globe** lit by the Sun at that moment.
+- **Mission playback:** scrub or play through the mission and watch the Sun circle the horizon and Earth rise and set, with one Play button: live terrain **shadows sweep across the south-pole map**, a **360° skyline** chart shows the Sun's and Earth's paths, a **3D south pole** (LOLA relief lit by the real Sun with the same ray-marched shadows) and a **3D Moon globe** (4k NASA texture with relief, Earth in its real direction and phase) follow the same time.
 - **South-pole map layers:** sunlight % and Earth-contact % heat maps (2026–2030) and **live terrain shadows** that move with the time slider.
 - **Help and export:** hover explanations for every term and a CSV download of the timeline.
 - **Comparison:** up to three scenarios side by side.
@@ -62,7 +62,7 @@ Tests: `cd backend && uv run pytest -q`
 - LOLA team, `DSMAP_POLAR.CAT` projection definition — https://imbrium.mit.edu/CATALOG/DSMAP_POLAR.CAT
 - Site coordinates: cited per site in `backend/data/sites.json` (shown in the app)
 - Site icon: "Lander Galaxy" by SVG Repo, CC0 — https://www.svgrepo.com/svg/275140/lander-galaxy
-- Globe texture: NASA's Scientific Visualization Studio, CGI Moon Kit (LRO LROC color mosaic with LOLA-filled poles) — https://svs.gsfc.nasa.gov/4720
+- Globe texture and relief: NASA's Scientific Visualization Studio, CGI Moon Kit (LRO LROC color mosaic with LOLA-filled poles, 4k; LOLA relief ldem_3_8bit) — https://svs.gsfc.nasa.gov/4720
 - Tools also listed by the challenge: [Quickmap](https://quickmap.lroc.asu.edu/), [Moon Trek](https://trek.nasa.gov/moon/)
 
 Libraries: Next.js (MIT), React (MIT), Tailwind CSS (MIT), shadcn/ui (MIT), Radix UI (MIT), Hugeicons free icons (MIT), class-variance-authority (Apache-2.0), cn (MIT), tw-animate-css (MIT), Observable Plot (ISC), three.js (MIT), Outfit font (SIL OFL 1.1), FastAPI (MIT), numpy (BSD-3-Clause), truststore (MIT, data scripts only), pytest (MIT, tests only).

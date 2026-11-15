@@ -157,6 +157,7 @@ export function MissionViews({ scenario, sites, clock }: { scenario: Scenario; s
               <div className="h-[360px]">
                 {opened.has("pole3d") && (
                   <SouthPole3D
+                    active={view === "pole3d"}
                     site={scenario.site}
                     subsolar={{ lat: s.subsolar_lat[index], lon: s.subsolar_lon[index] }}
                     subearth={{ lat: s.subearth_lat[index], lon: s.subearth_lon[index] }}
@@ -172,12 +173,19 @@ export function MissionViews({ scenario, sites, clock }: { scenario: Scenario; s
             <TabsContent value="globe" forceMount className={VIEW_PANEL}>
               <div className="h-[360px]">
                 {opened.has("globe") && (
-                  <MoonGlobe sites={sites} site={scenario.site} subsolar={{ lat: s.subsolar_lat[index], lon: s.subsolar_lon[index] }} />
+                  <MoonGlobe
+                    active={view === "globe"}
+                    sites={sites}
+                    site={scenario.site}
+                    subsolar={{ lat: s.subsolar_lat[index], lon: s.subsolar_lon[index] }}
+                    subearth={{ lat: s.subearth_lat[index], lon: s.subearth_lon[index] }}
+                  />
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                Lit by the Sun at the time on the mission slider, so the day/night line is real. White dot = this site. Drag
-                to rotate, scroll to zoom. Texture: NASA&apos;s Scientific Visualization Studio (CGI Moon Kit, LRO data).
+                Lit by the Sun at the time on the slider, so the day/night line is real and craters cast shadows along it.
+                Earth (blue) hangs in its real direction with its real phase, drawn much closer than it is. White dot = this
+                site. Drag to rotate, scroll to zoom. Maps: NASA SVS CGI Moon Kit (LRO color, LOLA relief).
               </p>
             </TabsContent>
           </div>

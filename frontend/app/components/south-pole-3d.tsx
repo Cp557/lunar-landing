@@ -6,6 +6,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 import { HALF_EXTENT_M, HEIGHTS_SIZE, R_M, toMap, unitVector } from "../lib/polar";
 import { SHADOW_GLSL } from "./shadow-layer";
+import { starfield } from "./starfield";
 
 const EXAGGERATION = 5; // relief is stretched 5× so the low polar terrain reads in 3D (lighting and shadows use true heights)
 const SEGMENTS = 423; // 424 × 424 vertices: every other heights cell; the shading uses every cell
@@ -70,17 +71,6 @@ function glowTexture(inner: string, outer: string): THREE.CanvasTexture {
   return new THREE.CanvasTexture(canvas);
 }
 
-function stars(): THREE.Points {
-  const positions = new Float32Array(900 * 3);
-  for (let i = 0; i < 900; i++) {
-    const v = new THREE.Vector3().randomDirection().multiplyScalar(30);
-    positions.set([v.x, v.y, v.z], i * 3);
-  }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  return new THREE.Points(geometry, new THREE.PointsMaterial({ color: 0xffffff, size: 1.3, sizeAttenuation: false, transparent: true, opacity: 0.7 }));
-}
-
 type World = {
   render: () => void;
   material: THREE.ShaderMaterial;
@@ -111,7 +101,9 @@ export default function SouthPole3D({
   site,
   subsolar,
   subearth,
+  active,
 }: {
+  active: boolean; // only render while the tab is visible (it stays mounted when hidden)
   site: { lat: number; lon: number };
   subsolar: { lat: number; lon: number };
   subearth: { lat: number; lon: number };
@@ -143,7 +135,7 @@ export default function SouthPole3D({
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color("#02040a");
-        scene.add(stars());
+        scene.add(starfield());
 
         const texture = new THREE.DataTexture(Float32Array.from(heights), HEIGHTS_SIZE, HEIGHTS_SIZE, THREE.RedFormat, THREE.FloatType);
         texture.minFilter = texture.magFilter = THREE.NearestFilter;
@@ -250,8 +242,8 @@ export default function SouthPole3D({
     w.sun.visible = sunLocal.z > -0.01;
     w.earth.position.copy(earthLocal).multiplyScalar(3);
     w.earth.visible = earthLocal.z > 0;
-    w.render();
-  }, [status, subsolar.lat, subsolar.lon, subearth.lat, subearth.lon]);
+    if (active) w.render();
+  }, [active, status, subsolar.lat, subsolar.lon, subearth.lat, subearth.lon]);
 
   const inArea = toMap(site.lat, site.lon) !== null;
   return (
