@@ -7,11 +7,14 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { COLORS } from "../lib/colors";
 import { formatDuration, formatUtc, horizonAt } from "../lib/format";
 import type { Scenario } from "../lib/types";
+import { LanderView } from "./lander-view";
 import { SkyChart } from "./sky-chart";
+import { SkyDome } from "./sky-dome";
 import { ElevationChart, TimelineChart } from "./timeline-chart";
 
 const FRAME_MS = 80;
@@ -63,8 +66,8 @@ export function MissionView({ scenario }: { scenario: Scenario }) {
         <CardHeader>
           <CardTitle>The sky from the lander</CardTitle>
           <CardDescription>
-            A 360° view around the landing site. The gray shape is the real skyline of hills and crater rims; the Sun and
-            Earth are visible only when they are above it. Drag the slider or press play to move through the mission.
+            The real skyline of hills and crater rims around the landing site. The Sun and Earth are visible only when they
+            are above it. Drag the slider or press play to move through the mission; switch views below.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3">
@@ -109,22 +112,37 @@ export function MissionView({ scenario }: { scenario: Scenario }) {
               />
             </span>
           </div>
-          <SkyChart scenario={scenario} index={index} />
-          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <li className="flex items-center gap-1.5">
-              <Dot color={COLORS.sun} /> Sun&apos;s path (visible)
-            </li>
-            <li className="flex items-center gap-1.5">
-              <Dot color={COLORS.earth} /> Earth&apos;s path (visible)
-            </li>
-            <li className="flex items-center gap-1.5">
-              <Dot color={COLORS.muted} /> hidden behind terrain
-            </li>
-            <li className="flex items-center gap-1.5">
-              <span className="inline-block h-2.5 w-4 rounded-sm" style={{ background: COLORS.terrain }} /> terrain skyline
-            </li>
-            <li>Heights are stretched so the low skyline is easy to see.</li>
-          </ul>
+          <Tabs defaultValue="lander">
+            <TabsList>
+              <TabsTrigger value="lander">Lander view</TabsTrigger>
+              <TabsTrigger value="panorama">360° chart</TabsTrigger>
+              <TabsTrigger value="dome">Sky map</TabsTrigger>
+            </TabsList>
+            <TabsContent value="lander" className="pt-2">
+              <LanderView scenario={scenario} index={index} />
+            </TabsContent>
+            <TabsContent value="panorama" className="grid gap-2 pt-2">
+              <SkyChart scenario={scenario} index={index} />
+              <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <li className="flex items-center gap-1.5">
+                  <Dot color={COLORS.sun} /> Sun&apos;s path (visible)
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <Dot color={COLORS.earth} /> Earth&apos;s path (visible)
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <Dot color={COLORS.muted} /> hidden behind terrain
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <span className="inline-block h-2.5 w-4 rounded-sm" style={{ background: COLORS.terrain }} /> terrain skyline
+                </li>
+                <li>Heights are stretched so the low skyline is easy to see.</li>
+              </ul>
+            </TabsContent>
+            <TabsContent value="dome" className="pt-2">
+              <SkyDome scenario={scenario} index={index} />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
       <Card>
