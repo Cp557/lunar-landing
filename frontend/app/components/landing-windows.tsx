@@ -3,7 +3,7 @@
 import { Calendar03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import * as Plot from "@observablehq/plot";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,22 +16,34 @@ import { type PlotElement, PlotFigure } from "./plot-figure";
 
 const DAY_MS = 86_400_000;
 
-/** Best landing dates for the current site: metrics for every landing day over the next year. */
+/**
+ * Best landing dates for the current site: metrics for every landing day over the next year. It scans as
+ * soon as it mounts (the page remounts it for each site and mission length, not for each date, so
+ * picking a date keeps the list); Rescan repeats it from the current landing date.
+ */
 export function LandingWindowsPanel({ query, onPick }: { query: ScenarioQuery; onPick: (start: number) => void }) {
   const [data, setData] = useState<LandingWindows | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mountQuery] = useState(query);
 
-  const scan = async () => {
+  const load = useCallback(
+    (q: ScenarioQuery) =>
+      fetchLandingWindows(q)
+        .then((d) => {
+          setData(d);
+          setError(null);
+        })
+        .catch((e: Error) => setError(e.message))
+        .finally(() => setBusy(false)),
+    [],
+  );
+  useEffect(() => {
+    load(mountQuery);
+  }, [load, mountQuery]);
+  const scan = () => {
     setBusy(true);
-    setError(null);
-    try {
-      setData(await fetchLandingWindows(query));
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
+    load(query);
   };
 
   const render = useCallback(
@@ -86,57 +98,56 @@ export function LandingWindowsPanel({ query, onPick }: { query: ScenarioQuery; o
         <CardAction>
           <Button variant="outline" size="sm" onClick={scan} disabled={busy}>
             <HugeiconsIcon icon={Calendar03Icon} strokeWidth={2} data-icon="inline-start" />
-            {busy ? "Scanning…" : data ? "Rescan" : "Scan next 12 months"}
+            {busy ? "Scanning…" : "Rescan"}
           </Button>
         </CardAction>
       </CardHeader>
-      {(error || data) && (
-        <CardContent className="grid gap-3">
-          {error && (
-            <p role="alert" className="text-sm text-destructive">
-              {error}
-            </p>
-          )}
-          {data && (
-            <>
-              <PlotFigure
-                render={render}
-                label="Chart of percent of the mission with sunlight, Earth contact, and both, for each landing date over the next year"
-              />
-              <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                <li className="flex items-center gap-1.5">
-                  <span className="inline-block h-2.5 w-4 rounded-sm" style={{ background: COLORS.both, opacity: 0.7 }} /> Sun and
-                  Earth together
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <span className="inline-block h-0.5 w-4" style={{ background: COLORS.sun }} /> Sunlight
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <span className="inline-block h-0.5 w-4" style={{ background: COLORS.earth }} /> Earth contact
-                </li>
-              </ul>
-              <div>
-                <h3 className="text-sm font-medium">Top 5 landing dates (most time with Sun and Earth together)</h3>
-                <ol className="mt-1 grid gap-1 text-sm sm:grid-cols-2">
-                  {best.map((w: LandingWindow) => (
-                    <li key={w.start}>
-                      <Button variant="ghost" className="h-auto w-full justify-start py-1.5 text-left whitespace-normal" onClick={() => onPick(w.start)}>
-                        <span>
-                          <span className="font-medium">{formatUtc(w.start).slice(0, 10)}</span>
-                          <span className="font-normal text-muted-foreground">
-                            {" "}
-                            · both {w.both_percent}% · sunlight {w.sun_percent}% · longest darkness {formatDuration(w.longest_dark_hours)}
-                          </span>
+      <CardContent className="grid gap-3">
+        {!data && !error && <p className="text-sm text-muted-foreground">Scanning the next 12 months…</p>}
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
+        {data && (
+          <>
+            <PlotFigure
+              render={render}
+              label="Chart of percent of the mission with sunlight, Earth contact, and both, for each landing date over the next year"
+            />
+            <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              <li className="flex items-center gap-1.5">
+                <span className="inline-block h-2.5 w-4 rounded-sm" style={{ background: COLORS.both, opacity: 0.7 }} /> Sun and
+                Earth together
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="inline-block h-0.5 w-4" style={{ background: COLORS.sun }} /> Sunlight
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="inline-block h-0.5 w-4" style={{ background: COLORS.earth }} /> Earth contact
+              </li>
+            </ul>
+            <div>
+              <h3 className="text-sm font-medium">Top 5 landing dates (most time with Sun and Earth together)</h3>
+              <ol className="mt-1 grid gap-1 text-sm sm:grid-cols-2">
+                {best.map((w: LandingWindow) => (
+                  <li key={w.start}>
+                    <Button variant="ghost" className="h-auto w-full justify-start py-1.5 text-left whitespace-normal" onClick={() => onPick(w.start)}>
+                      <span>
+                        <span className="font-medium">{formatUtc(w.start).slice(0, 10)}</span>
+                        <span className="font-normal text-muted-foreground">
+                          {" "}
+                          · both {w.both_percent}% · sunlight {w.sun_percent}% · longest darkness {formatDuration(w.longest_dark_hours)}
                         </span>
-                      </Button>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            </>
-          )}
-        </CardContent>
-      )}
+                      </span>
+                    </Button>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </>
+        )}
+      </CardContent>
     </Card>
   );
 }

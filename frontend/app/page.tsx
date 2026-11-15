@@ -7,6 +7,10 @@ export default function Home() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Lunar Landing Site Navigator</h1>
         <p className="text-muted-foreground">If we land here, on this date, how long will we have sunlight and contact with Earth?</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Click a site on the map → choose a landing date → press <span className="font-medium text-foreground">Play</span>{" "}
+          to watch sunlight and shadows move.
+        </p>
       </header>
       <Navigator />
       <Method />

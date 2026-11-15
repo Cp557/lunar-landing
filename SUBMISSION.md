@@ -49,7 +49,7 @@ We used Claude (Anthropic) throughout: it summarized the challenge and rules, pr
 1. **0–5 s** — South-pole map with the "Shadows" layer on, press Play (just below the map) so the shadows sweep around the pole: "At the Moon's south pole the Sun barely clears the horizon. One ridge decides whether a lander has power."
 2. **5–14 s** — Click Connecting Ridge C1 on the map, Dec 1 2026: "Here, the Sun stays up the whole mission… but Earth is hidden for 12 days."
 3. **14–21 s** — Add it to the comparison, click the Malapert Massif region, add it: "Another candidate site, same dates — a completely different answer."
-4. **21–27 s** — Scan the next 12 months: "Delayed? Find the best landing day in seconds."
+4. **21–27 s** — Scroll to "Best landing dates" (already scanned for the next 12 months) and click the top date: "Delayed? Find the best landing day in seconds."
 5. **27–30 s** — "Validated against JPL Horizons and published studies. Lunar Landing Site Navigator — Team Wise Tortoise."
 
 Add English subtitles if the narration is in another language.

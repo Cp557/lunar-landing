@@ -16,8 +16,8 @@
   --both: #7bd389;
   --radius: 0.625rem;
   /* South-pole map square: as large as fits on the first screen with the player under it
-     (page header + card chrome + player ≈ 17.5rem). */
-  --map-size: max(20rem, 100vh - 17.5rem);
+     (page header with the how-to line + card chrome + player ≈ 19rem). */
+  --map-size: max(20rem, 100vh - 19rem);
 }
 
 .dark {

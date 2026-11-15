@@ -163,7 +163,7 @@ export function Navigator() {
           <Details scenario={scenario} />
           <MissionViews scenario={scenario} sites={sites} clock={clock} />
           <LandingWindowsPanel
-            key={`${scenario.site.lat},${scenario.site.lon}`}
+            key={`${scenario.site.lat},${scenario.site.lon},${scenario.end - scenario.start}`}
             query={queryFor(scenario)}
             onPick={pickDate}
           />
