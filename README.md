@@ -28,7 +28,6 @@ Pick a landing site (29 curated sites with sources, including NASA's 9 Artemis I
 - **Mission playback:** scrub or play through the mission and watch the Sun circle the horizon and Earth rise and set, with one Play button: live terrain **shadows sweep across the south-pole map**, and a **3D south pole** (LOLA relief lit by the real Sun with the same ray-marched shadows) and a **3D Moon globe** (4k NASA texture with relief, Earth in its real direction and phase) follow the same time.
 - **South-pole map layers:** sunlight % and Earth-contact % heat maps (2026–2030) and **live terrain shadows** that move with the time slider.
 - **Help and export:** hover explanations for every term and a CSV download of the timeline.
-- **Comparison:** up to three scenarios side by side.
 - **Best landing dates:** the same site and mission length for every landing day over the next year, loaded automatically, with the top 5 dates one click away.
 - **Solar power:** average sunlight on a vertical panel turned to the Sun vs a flat panel.
 - **Shareable links:** the URL always reproduces the current scenario.

@@ -1,13 +1,11 @@
 "use client";
 
-import { Add01Icon, Alert02Icon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { Alert02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 
-import { CompareTable } from "./components/compare";
 import { LandingWindowsPanel } from "./components/landing-windows";
 import { Answer, Details } from "./components/results";
 import { CUSTOM, type FormState, ScenarioForm, toQuery } from "./components/scenario-form";
@@ -18,7 +16,6 @@ import { fetchScenario, fetchSites } from "./lib/api";
 import type { Scenario, ScenarioQuery, Site } from "./lib/types";
 
 const DEFAULT_FORM: FormState = { siteId: "", lat: "-89.5", lon: "0", start: "2026-12-01T00:00", days: "14" };
-const MAX_COMPARE = 3;
 
 const toInputValue = (unixSeconds: number) => new Date(unixSeconds * 1000).toISOString().slice(0, 16);
 
@@ -53,7 +50,6 @@ export function Navigator() {
   const [sites, setSites] = useState<Site[]>([]);
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
   const [scenario, setScenario] = useState<Scenario | null>(null);
-  const [compare, setCompare] = useState<Scenario[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // One mission time (sample index) for the whole page: the map's shadows and every view follow it.
@@ -121,8 +117,6 @@ export function Navigator() {
     [run],
   );
 
-  const inCompare = scenario !== null && compare.includes(scenario);
-
   const dim = `transition-opacity ${busy ? "opacity-60" : ""}`;
 
   return (
@@ -134,17 +128,6 @@ export function Navigator() {
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,calc(var(--map-size)+2rem))_minmax(340px,1fr)] lg:grid-rows-[auto_1fr]">
         <div className="min-w-0 space-y-3 lg:col-start-2">
           <ScenarioForm sites={sites} form={form} onChange={edit} />
-          {scenario && (
-            <Button
-              variant="outline"
-              className="w-full"
-              disabled={inCompare || compare.length >= MAX_COMPARE}
-              onClick={() => setCompare([...compare, scenario])}
-            >
-              <HugeiconsIcon icon={inCompare ? Tick02Icon : Add01Icon} strokeWidth={2} data-icon="inline-start" />
-              {inCompare ? "Added to comparison" : compare.length >= MAX_COMPARE ? "Comparison full (3)" : "Add to comparison"}
-            </Button>
-          )}
         </div>
         <div className="min-w-0 lg:col-start-1 lg:row-[1/span_2]">
           <SouthPoleMap
@@ -173,7 +156,6 @@ export function Navigator() {
           )}
         </div>
       </div>
-      {compare.length > 0 && <CompareTable scenarios={compare} onRemove={(i) => setCompare(compare.filter((_, j) => j !== i))} />}
       {scenario && (
         <div className={`space-y-4 ${dim}`}>
           <MissionTimeline scenario={scenario} />
