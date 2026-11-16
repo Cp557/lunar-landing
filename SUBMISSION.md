@@ -30,7 +30,7 @@ Every scenario starts with a plain-language mission brief and Good/Fair/Poor rat
 **Tools.** Python (FastAPI, numpy, pytest), TypeScript (Next.js, React, Tailwind, Observable Plot), hosted on Vercel.
 
 ## Use of Super Intelligence (SI)
-We used Claude (Anthropic) throughout: it summarized the challenge and rules, proposed the options and recommendations we chose from for the solution approach, wrote the code, tests and documentation, made the demo slides from screenshots of the app (each slide carries a visible note saying so), researched cited site coordinates, and drafted this text. NASA data comes from JPL Horizons and LRO LOLA; no AI-generated images or media are used in the app (the map is rendered from LOLA data). Full log: AI_USE.md in the repository.
+We used Claude (Anthropic) throughout: it summarized the challenge and rules, proposed the options and recommendations we chose from for the solution approach, wrote the code, tests and documentation, made the demo slides from screenshots of the app (each slide carries a visible note saying so), researched cited site coordinates, and drafted this text. NASA data comes from JPL Horizons and LRO LOLA; no AI-generated images or media are used in the app (the map is rendered from LOLA data). Summary: AI_USE.md in the repository.
 
 ## NASA data
 - JPL Horizons System (NASA/JPL-Caltech) — Sun and Earth positions relative to the Moon: https://ssd.jpl.nasa.gov/horizons/

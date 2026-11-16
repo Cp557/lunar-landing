@@ -87,7 +87,7 @@ Libraries: Next.js (MIT), React (MIT), Tailwind CSS (MIT), shadcn/ui (MIT), Radi
 
 ## Use of AI
 
-This project was built with substantial help from Claude (Anthropic). What was AI-generated and what the team decided is logged in [AI_USE.md](AI_USE.md).
+This project was built with substantial help from Claude (Anthropic). How we used it is summarized in [AI_USE.md](AI_USE.md).
 
 ## License
 

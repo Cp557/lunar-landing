@@ -49,7 +49,7 @@ backend/           FastAPI app, managed with uv
   pyproject.toml       Python deps; uv.lock pins them
 raw-data/          Git-ignored downloads (LOLA LDEM_75S_120M, LDEM_85S_20M)
 PLAN.md            Hackathon build plan (not a reference)
-AI_USE.md          Required disclosure of AI use
+AI_USE.md          Required disclosure: a short overview of how AI was used
 ```
 
 ## Architecture
