@@ -1,8 +1,14 @@
 "use client";
 
+import { Calendar03Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { useState } from "react";
+
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import type { ScenarioQuery, Site } from "../lib/types";
@@ -26,6 +32,72 @@ const GROUPS: [Site["group"], string][] = [
 export function toQuery(f: FormState): ScenarioQuery {
   const base = { start: `${f.start}:00Z`, days: Number(f.days) };
   return f.siteId === CUSTOM ? { ...base, lat: Number(f.lat), lon: Number(f.lon) } : { ...base, site: f.siteId };
+}
+
+// Dates the cached ephemeris covers; times are whole UTC hours.
+const FIRST_DAY = new Date(2026, 0, 1);
+const LAST_DAY = new Date(2030, 11, 31);
+const HOURS = Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, "0")}:00`);
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * Landing date (a calendar in a popover, styled like the rest of the app) and hour, both UTC.
+ * `value` is "YYYY-MM-DDTHH:mm". Calendar days are plain local dates, so no time-zone shift can move them.
+ */
+function LandingPicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [date = "", time = "00:00"] = value.split("T");
+  const [y, m, d] = date.split("-").map(Number);
+  const day = new Date(y, m - 1, d);
+  const valid = !Number.isNaN(day.getTime());
+  const hours = HOURS.includes(time) ? HOURS : [...HOURS, time].sort(); // keep a non-whole hour from a shared link
+
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            id="start"
+            type="button"
+            className="flex h-9 w-full min-w-0 items-center gap-2 rounded-3xl border border-transparent bg-input/50 px-3 text-left text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+          >
+            <HugeiconsIcon icon={Calendar03Icon} strokeWidth={2} className="size-4 shrink-0 text-muted-foreground" />
+            <span className="truncate">
+              {valid ? day.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "Choose a date"}
+            </span>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={valid ? day : undefined}
+            defaultMonth={valid ? day : FIRST_DAY}
+            captionLayout="dropdown"
+            startMonth={FIRST_DAY}
+            endMonth={LAST_DAY}
+            disabled={[{ before: FIRST_DAY }, { after: LAST_DAY }]}
+            onSelect={(picked) => {
+              if (!picked) return;
+              onChange(`${picked.getFullYear()}-${pad(picked.getMonth() + 1)}-${pad(picked.getDate())}T${time}`);
+              setOpen(false);
+            }}
+          />
+        </PopoverContent>
+      </Popover>
+      <Select value={time} onValueChange={(t) => onChange(`${date}T${t}`)}>
+        <SelectTrigger aria-label="Landing hour (UTC)" className="w-24">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {hours.map((h) => (
+            <SelectItem key={h} value={h}>
+              {h}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
 }
 
 function Field({ id, label, children }: { id: string; label: string; children: React.ReactNode }) {
@@ -97,15 +169,7 @@ export function ScenarioForm({ sites, form, onChange }: { sites: Site[]; form: F
           )}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
             <Field id="start" label="Landing (UTC)">
-              <Input
-                id="start"
-                type="datetime-local"
-                min="2026-01-01T00:00"
-                max="2030-12-31T00:00"
-                required
-                value={form.start}
-                onChange={(e) => set({ start: e.target.value })}
-              />
+              <LandingPicker value={form.start} onChange={(start) => set({ start })} />
             </Field>
             <Field id="days" label="Mission length (days)">
               <Input id="days" type="number" min={1} max={365} step={1} required value={form.days} onChange={(e) => set({ days: e.target.value })} />

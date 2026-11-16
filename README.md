@@ -84,7 +84,7 @@ Tests: `cd backend && uv run pytest -q`
 - Globe texture and relief: NASA's Scientific Visualization Studio, CGI Moon Kit (LRO LROC color mosaic with LOLA-filled poles, 4k; LOLA relief ldem_3_8bit) — https://svs.gsfc.nasa.gov/4720
 - Tools also listed by the challenge: [Quickmap](https://quickmap.lroc.asu.edu/), [Moon Trek](https://trek.nasa.gov/moon/)
 
-Libraries: Next.js (MIT), React (MIT), Tailwind CSS (MIT), shadcn/ui (MIT), Radix UI (MIT), Hugeicons free icons (MIT), class-variance-authority (Apache-2.0), cn (MIT), tw-animate-css (MIT), Observable Plot (ISC), three.js (MIT), Outfit font (SIL OFL 1.1), FastAPI (MIT), numpy (BSD-3-Clause), truststore (MIT, data scripts only), pytest (MIT, tests only).
+Libraries: Next.js (MIT), React (MIT), Tailwind CSS (MIT), shadcn/ui (MIT), Radix UI (MIT), react-day-picker (MIT) with date-fns (MIT), Hugeicons free icons (MIT), class-variance-authority (Apache-2.0), cn (MIT), tw-animate-css (MIT), Observable Plot (ISC), three.js (MIT), Outfit font (SIL OFL 1.1), FastAPI (MIT), numpy (BSD-3-Clause), truststore (MIT, data scripts only), pytest (MIT, tests only).
 
 ## Use of AI
 
