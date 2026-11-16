@@ -1,6 +1,6 @@
 "use client";
 
-import { ContrastIcon, EarthIcon, MountainIcon, Sun03Icon } from "@hugeicons/core-free-icons";
+import { ContrastIcon, EarthIcon, Sun03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -31,12 +31,11 @@ const tag = "absolute rounded-full bg-background/75 px-1.5 text-[10px] text-fore
 
 // Precomputed by backend/scripts/build_heatmap.py over the same square as the relief map.
 type Heatmap = { grid: number; period: string; scale_max: { sun: number; earth: number }; sun: number[]; earth: number[] };
-type Layer = "terrain" | "sun" | "earth" | "shadows";
+type Layer = "shadows" | "sun" | "earth";
 const LAYERS: { id: Layer; label: string; icon: typeof Sun03Icon; image?: string; gradient?: string }[] = [
-  { id: "terrain", label: "Terrain", icon: MountainIcon },
+  { id: "shadows", label: "Shadows", icon: ContrastIcon },
   { id: "sun", label: "Sunlight", icon: Sun03Icon, image: "/sunlight-map.png", gradient: "linear-gradient(to right, #0b1d3a, #ffd27a)" },
   { id: "earth", label: "Earth contact", icon: EarthIcon, image: "/earth-map.png", gradient: "linear-gradient(to right, #0b1d3a, #8fd3ff)" },
-  { id: "shadows", label: "Shadows", icon: ContrastIcon },
 ];
 
 type MapProps = {
@@ -58,7 +57,7 @@ export function SouthPoleMap({ children, sites, current, subsolar, onPickSite, o
   const [heat, setHeat] = useState<Heatmap | null>(null);
 
   useEffect(() => {
-    if (layer === "terrain" || layer === "shadows" || heat) return;
+    if (layer === "shadows" || heat) return;
     fetch("/heatmap.json")
       .then((r) => r.json())
       .then(setHeat)
@@ -152,7 +151,8 @@ export function SouthPoleMap({ children, sites, current, subsolar, onPickSite, o
         </div>
         {/* Only the Shadows layer changes with time, so the player shows only there (same cell: the height never changes). */}
         <div className="grid *:col-start-1 *:row-start-1">
-          <div className={layer === "shadows" ? "" : "invisible"} aria-hidden={layer !== "shadows"}>
+          {/* transition-none: the buttons' transition-all would otherwise keep them visible for a moment */}
+          <div className={layer === "shadows" ? "" : "invisible [&_*]:transition-none"} aria-hidden={layer !== "shadows"}>
             {children}
           </div>
           {layer !== "shadows" && (
@@ -185,8 +185,6 @@ export function SouthPoleMap({ children, sites, current, subsolar, onPickSite, o
 
 /** What a map layer shows: a color scale for the heat maps, a short note otherwise. */
 function LayerNote({ layer, heat }: { layer: (typeof LAYERS)[number]; heat: Heatmap | null }) {
-  if (layer.id === "terrain")
-    return <p>Shaded relief from NASA LOLA laser-altimeter elevation data, 80°S to the pole.</p>;
   if (layer.id === "shadows")
     return <p>Terrain shadows at the time on the slider above; press play to watch them sweep around the pole as the Sun circles. Approximate (720 m terrain).</p>;
   const max = heat?.scale_max[layer.id as "sun" | "earth"];

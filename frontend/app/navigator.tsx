@@ -2,7 +2,7 @@
 
 import { Add01Icon, Alert02Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -60,17 +60,21 @@ export function Navigator() {
   const clock = useMissionClock(scenario ? scenario.series.t.length - 1 : 0);
   const { index, reset: resetClock } = clock;
 
+  const latest = useRef(0); // only the newest request may change the page (answers can arrive out of order)
   const evaluate = useCallback(async (f: FormState) => {
+    const id = ++latest.current;
     setBusy(true);
     setError(null);
     try {
-      setScenario(await fetchScenario(toQuery(f)));
+      const next = await fetchScenario(toQuery(f));
+      if (id !== latest.current) return;
+      setScenario(next);
       resetClock();
       window.history.replaceState(null, "", urlFor(f));
     } catch (e) {
-      setError((e as Error).message);
+      if (id === latest.current) setError((e as Error).message);
     } finally {
-      setBusy(false);
+      if (id === latest.current) setBusy(false);
     }
   }, [resetClock]);
 
@@ -86,10 +90,23 @@ export function Navigator() {
       .catch((e: Error) => setError(e.message));
   }, [evaluate]);
 
+  /** Form edits evaluate on their own once typing pauses (0.6 s) and the form is complete. */
+  const pending = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const edit = useCallback(
+    (f: FormState) => {
+      setForm(f);
+      clearTimeout(pending.current);
+      const complete = f.start !== "" && f.days !== "" && (f.siteId === CUSTOM ? f.lat !== "" && f.lon !== "" : f.siteId !== "");
+      if (complete) pending.current = setTimeout(() => evaluate(f), 600);
+    },
+    [evaluate],
+  );
+
   /** Change part of the form and evaluate right away (map clicks, best-date picks). */
   const run = useCallback(
     (patch: Partial<FormState>) => {
       const next = { ...form, ...patch };
+      clearTimeout(pending.current); // a map click wins over a pending form edit
       setForm(next);
       evaluate(next);
     },
@@ -116,7 +133,7 @@ export function Navigator() {
       */}
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,calc(var(--map-size)+2rem))_minmax(340px,1fr)] lg:grid-rows-[auto_1fr]">
         <div className="min-w-0 space-y-3 lg:col-start-2">
-          <ScenarioForm sites={sites} form={form} onChange={setForm} onSubmit={() => evaluate(form)} busy={busy} />
+          <ScenarioForm sites={sites} form={form} onChange={edit} />
           {scenario && (
             <Button
               variant="outline"

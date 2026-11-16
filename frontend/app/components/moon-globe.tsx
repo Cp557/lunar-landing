@@ -80,7 +80,7 @@ export default function MoonGlobe({
     const light = new THREE.DirectionalLight(0xffffff, 3);
     scene.add(light);
 
-    const selected = new THREE.Mesh(new THREE.SphereGeometry(0.03, 16, 12), new THREE.MeshBasicMaterial({ color: "#ffffff" }));
+    const selected = new THREE.Mesh(new THREE.SphereGeometry(0.014, 16, 12), new THREE.MeshBasicMaterial({ color: "#ffffff" }));
     scene.add(selected);
 
     const controls = new OrbitControls(camera, renderer.domElement);

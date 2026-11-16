@@ -1,9 +1,5 @@
 "use client";
 
-import { Rocket01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,32 +39,15 @@ function Field({ id, label, children }: { id: string; label: string; children: R
   );
 }
 
-export function ScenarioForm({
-  sites,
-  form,
-  onChange,
-  onSubmit,
-  busy,
-}: {
-  sites: Site[];
-  form: FormState;
-  onChange: (f: FormState) => void;
-  onSubmit: () => void;
-  busy: boolean;
-}) {
+/** Site, landing date and mission length. There is no submit button: the page re-evaluates on every change. */
+export function ScenarioForm({ sites, form, onChange }: { sites: Site[]; form: FormState; onChange: (f: FormState) => void }) {
   const set = (patch: Partial<FormState>) => onChange({ ...form, ...patch });
   const site = sites.find((s) => s.id === form.siteId);
 
   return (
     <Card size="sm">
       <CardContent>
-        <form
-          className="grid gap-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSubmit();
-          }}
-        >
+        <div className="grid gap-4">
           <Field id="site" label="Landing site">
             <Select value={form.siteId || undefined} onValueChange={(siteId) => set({ siteId })}>
               <SelectTrigger id="site" className="w-full min-w-0">
@@ -132,11 +111,7 @@ export function ScenarioForm({
               <Input id="days" type="number" min={1} max={365} step={1} required value={form.days} onChange={(e) => set({ days: e.target.value })} />
             </Field>
           </div>
-          <Button type="submit" disabled={busy} size="lg" className="w-full">
-            <HugeiconsIcon icon={Rocket01Icon} strokeWidth={2} data-icon="inline-start" />
-            {busy ? "Calculating…" : "Evaluate landing"}
-          </Button>
-        </form>
+        </div>
       </CardContent>
     </Card>
   );

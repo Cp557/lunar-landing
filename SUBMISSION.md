@@ -10,7 +10,7 @@ If a lander touches down here, on this date, how long will it have sunlight and 
 
 ## Links
 - Final project: https://lunar-landing-delta.vercel.app (repo: https://github.com/Cp557/lunar-landing — make it public first)
-- Demo: _team to add (≤ 30 s video or ≤ 7 slides, public link)_
+- Demo (6 slides): https://github.com/Cp557/lunar-landing/blob/main/docs/demo-slides.pdf (works once the repo is public)
 
 ## Detailed project description
 **What it does.** Pick a landing site (29 curated sites with sources, including NASA's nine Artemis III candidate regions, past landings and far-side sites; a click on the south-pole map; or typed coordinates), a landing date and a mission length. The app reports:
@@ -53,12 +53,3 @@ We used Claude (Anthropic) throughout: it summarized the challenge and rules, pr
 5. **27–30 s** — "Validated against JPL Horizons and published studies. Lunar Landing Site Navigator — Team Wise Tortoise."
 
 Add English subtitles if the narration is in another language.
-
-## Alternative: 7 slides
-1. Title + one-line question
-2. The problem: south-pole lighting and comms, schedule slips
-3. Our approach: Horizons + LOLA → horizon → windows (diagram)
-4. Demo screenshot: headline answers + mission timeline
-5. Compare + best dates
-6. Validation numbers
-7. Impact and what's next
