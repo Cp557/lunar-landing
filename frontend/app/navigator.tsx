@@ -161,7 +161,7 @@ export function Navigator() {
         <div className={`space-y-4 ${dim}`}>
           <MissionTimeline scenario={scenario} />
           <Details scenario={scenario} />
-          <MissionViews scenario={scenario} sites={sites} clock={clock} />
+          <MissionViews scenario={scenario} clock={clock} />
           <LandingWindowsPanel
             key={`${scenario.site.lat},${scenario.site.lon},${scenario.end - scenario.start}`}
             query={queryFor(scenario)}

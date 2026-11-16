@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { horizonAt } from "../lib/format";
-import type { Scenario, Site } from "../lib/types";
+import type { Scenario } from "../lib/types";
 import { type MissionClock, MissionPlayer } from "./mission-player";
 import { TimelineChart } from "./timeline-chart";
 
@@ -74,7 +74,7 @@ export function MissionTimeline({ scenario }: { scenario: Scenario }) {
  * The mission in 3D, on the mission clock: the south pole (the default for sites within its 80°S edge)
  * or the whole Moon.
  */
-export function MissionViews({ scenario, sites, clock }: { scenario: Scenario; sites: Site[]; clock: MissionClock }) {
+export function MissionViews({ scenario, clock }: { scenario: Scenario; clock: MissionClock }) {
   const s = scenario.series;
   const { index } = clock;
   const [view, setView] = useState(() => (scenario.site.lat <= -80 ? "pole3d" : "globe"));
@@ -152,7 +152,6 @@ export function MissionViews({ scenario, sites, clock }: { scenario: Scenario; s
                 {opened.has("globe") && (
                   <MoonGlobe
                     active={view === "globe"}
-                    sites={sites}
                     site={scenario.site}
                     subsolar={{ lat: s.subsolar_lat[index], lon: s.subsolar_lon[index] }}
                     subearth={{ lat: s.subearth_lat[index], lon: s.subearth_lon[index] }}
@@ -160,9 +159,9 @@ export function MissionViews({ scenario, sites, clock }: { scenario: Scenario; s
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                Lit by the Sun at the time on the slider, so the day/night line is real and craters cast shadows along it.
-                Earth (blue) hangs in its real direction with its real phase, drawn much closer than it is. White dot = this
-                site. Drag to rotate, scroll to zoom. Maps: NASA SVS CGI Moon Kit (LRO color, LOLA relief).
+                Centered on this site (white dot), lit by the Sun at the time on the slider, so the day/night line is real.
+                Drag to turn the Moon (Earth, in blue, is in its real direction, drawn much closer than it is); scroll to zoom.
+                Maps: NASA SVS CGI Moon Kit (LRO color, LOLA relief).
               </p>
             </TabsContent>
           </div>

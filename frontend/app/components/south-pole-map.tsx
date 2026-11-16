@@ -150,7 +150,17 @@ export function SouthPoleMap({ children, sites, current, subsolar, onPickSite, o
             />
           )}
         </div>
-        {children}
+        {/* Only the Shadows layer changes with time, so the player shows only there (same cell: the height never changes). */}
+        <div className="grid *:col-start-1 *:row-start-1">
+          <div className={layer === "shadows" ? "" : "invisible"} aria-hidden={layer !== "shadows"}>
+            {children}
+          </div>
+          {layer !== "shadows" && (
+            <p className="self-center text-xs text-muted-foreground">
+              This layer doesn&apos;t change over time. Choose Shadows to watch the mission play.
+            </p>
+          )}
+        </div>
         <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           {LEGEND.map(([kind, label]) => (
             <li key={kind} className="flex items-center gap-1.5">
