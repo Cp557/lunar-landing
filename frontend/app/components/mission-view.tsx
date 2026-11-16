@@ -86,8 +86,8 @@ export function MissionViews({ scenario, sites, clock }: { scenario: Scenario; s
       <CardHeader>
         <CardTitle>Watch the mission</CardTitle>
         <CardDescription>
-          Press play to see the Sun and Earth move along the real skyline of hills and crater rims around the lander:
-          each is visible only while it is above that skyline.
+          Press Play to watch the Sun and Earth move around the lander. Each is visible only while it is above the
+          hills.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid min-w-0 gap-3">
@@ -139,18 +139,17 @@ export function MissionViews({ scenario, sites, clock }: { scenario: Scenario; s
               <SkyChart scenario={scenario} index={index} />
               <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                 <li className="flex items-center gap-1.5">
-                  <Dot color={COLORS.sun} /> Sun&apos;s path (visible)
+                  <span className="inline-block h-0.5 w-4" style={{ background: COLORS.sun }} /> Sun&apos;s path
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <Dot color={COLORS.earth} /> Earth&apos;s path (visible)
+                  <span className="inline-block h-0.5 w-4" style={{ background: COLORS.earth }} /> Earth&apos;s path
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <Dot color={COLORS.muted} /> hidden behind terrain
+                  <span className="inline-block h-2.5 w-4 rounded-sm" style={{ background: COLORS.terrain }} /> hills around the lander
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <span className="inline-block h-2.5 w-4 rounded-sm" style={{ background: COLORS.terrain }} /> terrain skyline
+                  <Dot color={COLORS.muted} hollow /> hidden behind the hills
                 </li>
-                <li>Heights are stretched so the low skyline is easy to see.</li>
               </ul>
             </TabsContent>
             <TabsContent value="pole3d" forceMount className={VIEW_PANEL}>
