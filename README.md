@@ -23,10 +23,9 @@ Pick a landing site (29 curated sites with sources, including NASA's 9 Artemis I
 - **Headline:** is the Sun up at touchdown, and how long until sunset (or sunrise)? Is Earth in view, and how long until Earthset?
 - **Mission summary:** % of the mission sunlit, % with Earth contact, % with both.
 - **Risk:** the longest dark period (battery/thermal survival) and the longest communication blackout.
-- **Sky view:** the real terrain horizon with the Sun's and Earth's paths over the mission.
 - **Mission timeline:** one picture of when the lander has sunlight, Earth contact, or both, with how long each stretch lasts.
 - **Mission brief:** one plain-language sentence plus Good/Fair/Poor ratings for power and communications.
-- **Mission playback:** scrub or play through the mission and watch the Sun circle the horizon and Earth rise and set, with one Play button: live terrain **shadows sweep across the south-pole map**, a **360° skyline** chart shows the Sun's and Earth's paths, a **3D south pole** (LOLA relief lit by the real Sun with the same ray-marched shadows) and a **3D Moon globe** (4k NASA texture with relief, Earth in its real direction and phase) follow the same time.
+- **Mission playback:** scrub or play through the mission and watch the Sun circle the horizon and Earth rise and set, with one Play button: live terrain **shadows sweep across the south-pole map**, and a **3D south pole** (LOLA relief lit by the real Sun with the same ray-marched shadows) and a **3D Moon globe** (4k NASA texture with relief, Earth in its real direction and phase) follow the same time.
 - **South-pole map layers:** sunlight % and Earth-contact % heat maps (2026–2030) and **live terrain shadows** that move with the time slider.
 - **Help and export:** hover explanations for every term and a CSV download of the timeline.
 - **Comparison:** up to three scenarios side by side.

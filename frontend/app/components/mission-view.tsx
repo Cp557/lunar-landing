@@ -6,14 +6,12 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { COLORS } from "../lib/colors";
 import { horizonAt } from "../lib/format";
 import type { Scenario, Site } from "../lib/types";
 import { type MissionClock, MissionPlayer } from "./mission-player";
-import { SkyChart } from "./sky-chart";
 import { TimelineChart } from "./timeline-chart";
 
-// three.js is large: load the 3D views only when their tab is opened, and never on the server.
+// three.js is large: load each 3D view in the browser only, the first time its tab is shown.
 const loading = () => <p className="grid h-full place-items-center text-sm text-muted-foreground">Loading 3D view…</p>;
 const MoonGlobe = dynamic(() => import("./moon-globe"), { ssr: false, loading });
 const SouthPole3D = dynamic(() => import("./south-pole-3d"), { ssr: false, loading });
@@ -72,23 +70,23 @@ export function MissionTimeline({ scenario }: { scenario: Scenario }) {
   );
 }
 
-/** Watch the mission play out: the skyline around the lander and the 3D views, all on the mission clock. */
+/**
+ * The mission in 3D, on the mission clock: the south pole (the default for sites within its 80°S edge)
+ * or the whole Moon.
+ */
 export function MissionViews({ scenario, sites, clock }: { scenario: Scenario; sites: Site[]; clock: MissionClock }) {
   const s = scenario.series;
   const { index } = clock;
-  const [view, setView] = useState("skyline");
-  const [opened, setOpened] = useState(() => new Set(["skyline"])); // 3D views mount the first time they're opened
+  const [view, setView] = useState(() => (scenario.site.lat <= -80 ? "pole3d" : "globe"));
+  const [opened, setOpened] = useState(() => new Set([view])); // each 3D view mounts the first time it's shown
   const sunUp = s.sun_el[index] > horizonAt(scenario, s.sun_az[index]);
   const earthUp = s.earth_el[index] > horizonAt(scenario, s.earth_az[index]);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Watch the mission</CardTitle>
-        <CardDescription>
-          Press Play to watch the Sun and Earth move around the lander. Each is visible only while it is above the
-          hills.
-        </CardDescription>
+        <CardTitle>3D view</CardTitle>
+        <CardDescription>Press Play to watch sunlight and shadows move across the Moon.</CardDescription>
       </CardHeader>
       <CardContent className="grid min-w-0 gap-3">
         <MissionPlayer scenario={scenario} clock={clock} />
@@ -124,34 +122,14 @@ export function MissionViews({ scenario, sites, clock }: { scenario: Scenario; s
           }}
         >
           <TabsList className="w-full sm:w-fit">
-            <TabsTrigger value="skyline" className={TAB}>
-              360° skyline
-            </TabsTrigger>
             <TabsTrigger value="pole3d" className={TAB}>
-              3D south pole
+              South pole
             </TabsTrigger>
             <TabsTrigger value="globe" className={TAB}>
               Globe
             </TabsTrigger>
           </TabsList>
           <div className="grid grid-cols-1 *:col-start-1 *:row-start-1">
-            <TabsContent value="skyline" forceMount className={VIEW_PANEL}>
-              <SkyChart scenario={scenario} index={index} />
-              <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                <li className="flex items-center gap-1.5">
-                  <span className="inline-block h-0.5 w-4" style={{ background: COLORS.sun }} /> Sun&apos;s path
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <span className="inline-block h-0.5 w-4" style={{ background: COLORS.earth }} /> Earth&apos;s path
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <span className="inline-block h-2.5 w-4 rounded-sm" style={{ background: COLORS.terrain }} /> hills around the lander
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <Dot color={COLORS.muted} hollow /> hidden behind the hills
-                </li>
-              </ul>
-            </TabsContent>
             <TabsContent value="pole3d" forceMount className={VIEW_PANEL}>
               <div className="h-[360px]">
                 {opened.has("pole3d") && (

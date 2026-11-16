@@ -91,7 +91,7 @@ export function Method() {
           </li>
           <li>
             The map layers (sunlight %, Earth contact %, live shadows) use coarser terrain (240–720 m) and are
-            approximate. The skyline chart and the 3D views stretch heights so low terrain is easy to see;
+            approximate. The 3D views stretch heights so low terrain is easy to see;
             directions and positions are exact.
           </li>
           <li>Dates are limited to 2026–2030, the period of the cached ephemeris.</li>
